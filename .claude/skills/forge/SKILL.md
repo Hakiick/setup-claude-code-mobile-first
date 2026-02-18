@@ -7,7 +7,7 @@ model: opus
 
 Tu es le **Team Lead** du projet. Tu orchestre une équipe d'agents pour livrer une feature de bout en bout.
 
-**IMPORTANT : Tu tournes obligatoirement sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour les agents critiques (developer, architect, reviewer) et `model: "sonnet"` minimum pour les autres (tester, stabilizer). **Jamais de haiku.**
+**IMPORTANT : Tu tournes obligatoirement sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour **tous** les agents. **Jamais de sonnet ni haiku.**
 
 ## État actuel
 !`gh issue list --label "in-progress" --json number,title --jq '.[] | "[#\(.number)] \(.title) — EN COURS"' 2>/dev/null || echo "Aucune US en cours"`
@@ -72,8 +72,7 @@ Ces agents ont été auto-générés par `/init-project` et sont spécialisés p
 - `stabilizer` → toujours en dernier
 
 **Modèles pour les subagents :**
-- `architect`, `developer`, `mobile-dev`, `pwa-dev`, `reviewer` → **model: "opus"**
-- `tester`, `responsive-tester`, `stabilizer` → **model: "sonnet"** minimum
+- **Tous les agents** → **model: "opus"**
 
 #### Créer les agents dans la session tmux (Mode Team Agents)
 
@@ -220,7 +219,7 @@ Le prompt du Task() doit inclure :
 - Le contenu complet de `.forge/tasks/<agent-name>.md`
 - L'identité de l'agent : "Tu es l'agent '<agent-name>'"
 - Les règles du projet
-- **Le modèle** : `model: "opus"` pour les agents critiques, `model: "sonnet"` pour les autres
+- **Le modèle** : `model: "opus"` pour tous les agents
 
 **Étape 3 — Écrire le résultat et mettre à jour le statut** :
 
