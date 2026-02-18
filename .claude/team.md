@@ -12,7 +12,7 @@
 
 ### `stabilizer`
 **Rôle** : Quality gate — build, tests, lint, type-check
-**Modèle** : **Sonnet 4.5**
+**Modèle** : **Opus 4.6**
 **Toujours présent** : oui (toujours en dernier dans le pipeline)
 **Responsabilités** :
 - Lancer les checks de stabilité (`bash scripts/stability-check.sh`)
@@ -47,7 +47,7 @@
 
 ### `responsive-tester`
 **Rôle** : Testeur responsive — breakpoints, viewports, touch, accessibilité
-**Modèle** : **Sonnet 4.5**
+**Modèle** : **Opus 4.6**
 **Skill** : `/responsive-tester`
 **Domaine** : Tests multi-viewports, touch events, accessibilité mobile, Lighthouse audit
 **Responsabilités** :
@@ -82,7 +82,7 @@
 **Rôle** : Développeur générique
 
 ### `tester`
-**Modèle** : **Sonnet 4.5**
+**Modèle** : **Opus 4.6**
 **Rôle** : Tests unitaires et d'intégration
 
 ---
@@ -103,8 +103,8 @@
 | Planification | architect | **Opus 4.6** |
 | Développement | mobile-dev, pwa-dev, developer | **Opus 4.6** |
 | Revue | reviewer | **Opus 4.6** |
-| Test | tester, responsive-tester | **Sonnet 4.5** |
-| Validation | stabilizer | **Sonnet 4.5** |
+| Test | tester, responsive-tester | **Opus 4.6** |
+| Validation | stabilizer | **Opus 4.6** |
 
 ## Types d'agents
 

@@ -95,17 +95,17 @@ sudo swapon /swapfile
 tmux list-sessions
 
 # Attach to existing
-tmux attach -t claude-agents
+tmux attach -t forge
 
 # Kill and restart
-bash scripts/07-launch-agents.sh --kill
-bash scripts/07-launch-agents.sh --project ~/workspace/my-project
+bash scripts/forge-panes.sh --kill
+bash scripts/forge-panes.sh --init
 ```
 
 ### Agents not starting
 ```bash
 # Check if claude is in PATH within tmux
-tmux send-keys -t claude-agents:1 "which claude" Enter
+tmux send-keys -t forge:orchestrateur "which claude" Enter
 
 # If not, add to ~/.bashrc:
 echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc

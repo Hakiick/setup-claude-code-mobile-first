@@ -7,7 +7,7 @@ model: opus
 
 Tu initialises le projet. Le setup est **entièrement automatique** — tu analyses le projet et tu configures tout.
 
-**IMPORTANT : Tu tournes sur Opus 4.6.** Les agents que tu génères doivent spécifier leur modèle recommandé dans leur SKILL.md (`model: opus` pour les agents critiques, `model: sonnet` pour les autres).
+**IMPORTANT : Tu tournes sur Opus 4.6.** Les agents que tu génères doivent spécifier `model: opus` dans leur SKILL.md. **Tous les agents tournent sur Opus 4.6.**
 
 ## Contexte du projet
 !`cat project.md 2>/dev/null || echo "ERREUR: project.md manquant. Crée-le d'abord."`

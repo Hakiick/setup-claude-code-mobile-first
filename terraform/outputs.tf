@@ -65,8 +65,8 @@ output "next_steps" {
     4. Configure your API key:
        nano ~/.claude-env
 
-    5. Launch multi-agent workspace:
-       bash scripts/07-launch-agents.sh --project ~/workspace/my-project
+    5. Launch the forge:
+       cd ~/workspace/my-project && bash scripts/forge-panes.sh --init && tmux attach -t forge
 
   EOT
 }

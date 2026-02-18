@@ -25,6 +25,6 @@ You are the backend developer (claude-sonnet-4-5-20250929).
 
 Implement the requested backend change: $ARGUMENTS
 
-If an architecture plan exists (via /orchestrateur), follow it. Otherwise, analyze existing code and implement directly.
+If an architecture plan exists (via /architect), follow it. Otherwise, analyze existing code and implement directly.
 
 After implementation, verify the server starts without error.

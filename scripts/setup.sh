@@ -34,7 +34,6 @@ STEPS=(
   "01-bootstrap.sh|Bootstrap OS (packages, user, swap)"
   "04-install-claude-code.sh|Node.js + Claude Code CLI"
   "06-install-code-server.sh|VS Code web (code-server)"
-  "07-launch-agents.sh|Launch tmux multi-agents"
   "08-validate.sh|Validate setup"
 )
 
@@ -98,8 +97,7 @@ echo "║   Etapes :                                           ║"
 echo "║     1. Packages systeme, swap, securite (SSH, UFW)   ║"
 echo "║     2. Node.js + Claude Code CLI                     ║"
 echo "║     3. VS Code web (code-server sur :8080)           ║"
-echo "║     4. Agents tmux (lancement manuel)                ║"
-echo "║     5. Validation                                    ║"
+echo "║     4. Validation                                    ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
 
@@ -156,8 +154,7 @@ for i in "${!STEPS[@]}"; do
   # Step 1: bootstrap (root) + tmux config
   # Step 2: claude code (user, no root)
   # Step 3: code-server (root)
-  # Step 4: launch agents (manual)
-  # Step 5: validate (user)
+  # Step 4: validate (user)
   case $step_num in
     1)
       # Bootstrap: run as root, then install tmux config for user
@@ -177,11 +174,6 @@ for i in "${!STEPS[@]}"; do
       su -l "${WORK_USER}" -c "bash ${script_path}"
       ;;
     4)
-      # Agents: skip auto-launch, user runs manually with --project
-      echo "  -> Skipping auto-launch (run manually after setup):"
-      echo "     bash ${script_path} --project /path/to/your/project"
-      ;;
-    5)
       # Validate: run as user
       su -l "${WORK_USER}" -c "bash ${script_path}"
       ;;
@@ -211,9 +203,10 @@ echo "║                                                      ║"
 echo "║  4. Copier le template .claude/ dans ton projet :    ║"
 echo "║     cp -r claude/ ~/workspace/mon-projet/.claude/    ║"
 echo "║                                                      ║"
-echo "║  5. Lancer les agents multi-Claude :                 ║"
-echo "║     bash scripts/07-launch-agents.sh \\               ║"
-echo "║       --project ~/workspace/mon-projet               ║"
+echo "║  5. Lancer le Forge :                                 ║"
+echo "║     cd ~/workspace/mon-projet                        ║"
+echo "║     bash scripts/forge-panes.sh --init               ║"
+echo "║     tmux attach -t forge                             ║"
 echo "║                                                      ║"
 echo "║  ACCES DEPUIS L'IPHONE :                             ║"
 echo "║    VS Code web : http://<IP>:8080                    ║"
@@ -224,6 +217,6 @@ echo "║    Ctrl+A, 1..9  -> aller a l'agent N               ║"
 echo "║    Ctrl+A, Tab   -> agent suivant                    ║"
 echo "║    Ctrl+A, w     -> vue arbre (tous les agents)      ║"
 echo "║    Ctrl+A, d     -> se detacher (agents continuent)  ║"
-echo "║    tmux attach -t claude-agents -> se re-attacher    ║"
+echo "║    tmux attach -t forge -> se re-attacher             ║"
 echo "║                                                      ║"
 echo "╚══════════════════════════════════════════════════════╝"

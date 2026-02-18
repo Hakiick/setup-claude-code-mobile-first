@@ -42,17 +42,14 @@ The multi-agent workspace is a tmux-based system where each tmux tab runs an ind
 ## tmux session structure
 
 ```
-claude-agents (tmux session)
-├── 1: orchestrateur  (claude opus)
-├── 2: backend-dev    (claude sonnet)
-├── 3: frontend-dev   (claude sonnet)
-├── 4: admin-sys      (claude sonnet)
-├── 5: devops         (claude sonnet)
-├── 6: testeur        (claude haiku)
-├── 7: reviewer       (claude sonnet)
-├── 8: stabilizer     (claude sonnet)
-├── 9: manager        (claude opus)
-└── 10: monitor       (watch: git status + board)
+forge (tmux session)
+├── orchestrateur    Claude Code (Team Lead /forge) — Opus 4.6
+├── monitor          Dashboard temps réel (forge-monitor.sh)
+└── [agents]         Créés dynamiquement par le Forge selon l'US :
+    ├── mobile-dev        (agent-watcher.sh — moniteur passif)
+    ├── responsive-tester (agent-watcher.sh — moniteur passif)
+    ├── stabilizer        (agent-watcher.sh — moniteur passif)
+    └── ...
 ```
 
 ## Web access layer

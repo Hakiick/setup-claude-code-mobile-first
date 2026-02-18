@@ -30,7 +30,7 @@ ssh user@<hostname>
 
 Then attach to the tmux session:
 ```
-tmux attach -t claude-agents
+tmux attach -t forge
 ```
 
 ### Option 3: Tailscale (recommended for security)
@@ -69,7 +69,7 @@ tmux attach -t claude-agents
 
 ### Connection drops
 - tmux preserves your session — just reconnect
-- Use `tmux attach -t claude-agents` after reconnecting
+- Use `tmux attach -t forge` after reconnecting
 
 ### Small screen layout
 - The tmux status bar shows all agent tabs

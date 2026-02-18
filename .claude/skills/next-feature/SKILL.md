@@ -7,7 +7,7 @@ model: opus
 
 Tu dépiles la prochaine feature. Suis le workflow séquentiel.
 
-**IMPORTANT : Tu tournes sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour les agents critiques et `model: "sonnet"` minimum pour les autres. **Jamais de haiku.**
+**IMPORTANT : Tu tournes sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour **tous** les agents. **Jamais de sonnet ni haiku.**
 
 ## État actuel
 !`gh issue list --label "in-progress" --json number,title --jq '.[] | "[#\(.number)] \(.title) — EN COURS"' 2>/dev/null || echo "Aucune US en cours"`
@@ -73,7 +73,7 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 - **Rebase régulier** sur main
 
 **Si tester / responsive-tester assigné :**
-- Écris et lance les tests (model: sonnet)
+- Écris et lance les tests (model: opus)
 - Corrige si des tests échouent
 
 **Si reviewer assigné :**
@@ -81,7 +81,7 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 - Corrections si nécessaire
 
 **stabilizer (toujours) :**
-- Build + Tests + Lint + Type check (model: sonnet)
+- Build + Tests + Lint + Type check (model: opus)
 - Corrige jusqu'à ce que tout passe
 
 ### 6. Rebase final + Push + Créer la PR

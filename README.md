@@ -6,7 +6,7 @@
 
 - **Secured server** : SSH hardening, UFW firewall, Tailscale VPN (optional)
 - **Claude Code CLI** : installed and configured with your API key
-- **17 specialized agents** in tmux, each with its own model and system prompt
+- **15 specialized agents** (skills) orchestrated by Forge (Team Lead)
 - **Web IDE** : code-server (VS Code in the browser)
 - **Orchestration multi-agents** : forge (Team Lead), feedback loops, monitoring temps réel
 - **Workflow structuré** : US -> branch -> implement -> stabilize -> PR -> done
@@ -16,7 +16,7 @@
 
 ### Option A — Server setup (5 min)
 
-Pour installer Claude Code + code-server + agents sur un serveur Ubuntu :
+Pour installer Claude Code + code-server sur un serveur Ubuntu :
 
 ```bash
 git clone https://github.com/Hakiick/setup-claude-code-mobile-first.git
@@ -29,11 +29,13 @@ sudo bash scripts/setup.sh
 bash scripts/setup-api-key.sh
 ```
 
-Puis lancer les agents :
+Puis lancer le forge :
 
 ```bash
-cp -r .claude/ ~/workspace/my-project/.claude/
-bash scripts/07-launch-agents.sh --project ~/workspace/my-project
+cd ~/workspace/my-project
+bash scripts/forge-panes.sh --init
+tmux attach -t forge
+# dans l'orchestrateur : /forge <US-numero>
 ```
 
 Access : `http://<IP>:8080/` (VS Code web)
@@ -55,41 +57,43 @@ rm -rf /tmp/setup
 
 Puis dans Claude Code : `/init-project`
 
-## Agents
+## Agents (Skills)
 
-### Infrastructure (9 agents tmux)
+Tous les agents tournent sur **Opus 4.6**.
 
-| Agent | Model | Role |
-|-------|-------|------|
-| orchestrateur | opus | Central brain — plans, coordinates, reviews |
-| backend-dev | sonnet | REST API, business logic, WebSocket |
-| frontend-dev | sonnet | UI/UX, SPA, responsive mobile-first |
-| admin-sys | sonnet | Infrastructure, networking, security |
-| devops | sonnet | CI/CD, Docker, cloud, Terraform |
-| testeur | haiku | Unit/integration/E2E tests |
-| reviewer | sonnet | Code review: quality + OWASP security |
-| stabilizer | sonnet | Build, tests, deploy verification |
-| manager | opus | Project tracking, prioritization |
-
-### Skills Claude Code (slash commands)
+### Core
 
 | Skill | Role |
 |-------|------|
-| `/init-project` | Analyse le projet, génère agents + règles, crée les issues |
 | `/forge` | Team Lead : décompose, délègue, feedback loops, livre stable |
+| `/init-project` | Analyse le projet, génère agents + règles, crée les issues |
 | `/next-feature` | Pipeline linéaire simple (alternative à /forge) |
 | `/stabilizer` | Quality gate : build, tests, lint, type-check |
 | `/reviewer` | Revue de code qualité + sécurité |
 | `/architect` | Plan d'implémentation (read-only) |
 | `/developer` | Implémentation générique |
 | `/tester` | Tests unitaires et E2E |
+
+### Mobile-first
+
+| Skill | Role |
+|-------|------|
 | `/mobile-dev` | Dev responsive, touch-first, viewport |
 | `/responsive-tester` | Tests multi-viewport, WCAG, Lighthouse |
 | `/pwa-dev` | Service workers, manifest, offline-first |
 
-## Multi-Agent avec tmux
+### Infrastructure (disponibles si besoin)
 
-### Mode Forge autonome (recommandé)
+| Skill | Role |
+|-------|------|
+| `/frontend-dev` | UI/UX, SPA, responsive mobile-first |
+| `/backend-dev` | REST API, business logic, WebSocket |
+| `/admin-sys` | Infrastructure, networking, security |
+| `/devops` | CI/CD, Docker, cloud, Terraform |
+
+## Multi-Agent avec tmux (Forge)
+
+### Mode autonome (recommandé)
 
 ```bash
 # L'orchestrateur crée ses agents dynamiquement selon l'US
@@ -98,10 +102,9 @@ tmux attach -t forge
 # puis dans l'orchestrateur : /forge <US-numero>
 ```
 
-### Mode Forge manuel (agents prédéfinis)
+### Mode manuel (agents prédéfinis)
 
 ```bash
-# Créer la session avec les agents nécessaires
 bash scripts/forge-panes.sh --agents mobile-dev responsive-tester stabilizer
 tmux attach -t forge
 ```
@@ -111,14 +114,6 @@ Window 1: orchestrateur  → Claude Code (Team Lead /forge)
 Window 2: mobile-dev     → Moniteur passif (agent-watcher.sh)
 Window 3: responsive-tester → Moniteur passif
 Window N: monitor        → Dashboard temps réel (forge-monitor.sh)
-```
-
-### Mode Infrastructure (9 agents)
-
-```bash
-# Lancer les 9 agents dans un projet
-bash scripts/07-launch-agents.sh --project ~/workspace/my-project
-tmux attach -t agents
 ```
 
 ### Commandes
@@ -159,7 +154,7 @@ bash scripts/check-us-eligibility.sh --list   # US éligibles
 
 ```bash
 sudo bash scripts/setup.sh --skip 3     # Skip Tailscale
-sudo bash scripts/setup.sh --only 4 7   # Only Claude Code + agents
+sudo bash scripts/setup.sh --only 4 6   # Only Claude Code + code-server
 sudo bash scripts/setup.sh --from 5     # Start from step 5
 ```
 
@@ -193,14 +188,13 @@ setup-claude-code-mobile-first/
 │   ├── team.md, workflow.md      # Team & workflow docs
 │   ├── hooks/                    # File protection + context reinjection
 │   ├── rules/                    # Code style, commits, branches, stability
-│   └── skills/                   # 17 agent skill definitions
+│   └── skills/                   # 15 agent skill definitions
 │
 ├── scripts/
 │   ├── setup.sh                  # Master setup orchestrator
 │   ├── 01-bootstrap.sh           # OS bootstrap (packages, user, swap)
 │   ├── 04-install-claude-code.sh # Node.js + Claude Code CLI
 │   ├── 06-install-code-server.sh # VS Code web
-│   ├── 07-launch-agents.sh       # Launch 9 tmux agents
 │   ├── 08-validate.sh            # Validate installation
 │   ├── setup-api-key.sh          # Configure Anthropic API key
 │   ├── stability-check.sh        # Build + tests + lint + types
@@ -218,8 +212,7 @@ setup-claude-code-mobile-first/
 │   └── forge-monitor.sh          # Real-time monitoring dashboard
 │
 ├── configs/
-│   ├── .tmux.conf                # tmux config (mobile-optimized)
-│   └── agents.conf               # Agent definitions (name|model|role)
+│   └── .tmux.conf                # tmux config (mobile-optimized)
 │
 ├── terraform/                    # Azure VM provisioning (optional)
 │   ├── main.tf
@@ -231,7 +224,6 @@ setup-claude-code-mobile-first/
 └── docs/
     ├── ARCHITECTURE.md           # System architecture
     ├── PROCEDURE.md              # Complete setup procedure
-    ├── AGENTS.md                 # Agent descriptions & customization
     ├── MOBILE-ACCESS.md          # iPhone/iPad access guide
     ├── TERRAFORM.md              # Azure VM guide
     └── TROUBLESHOOTING.md        # Common issues & fixes
@@ -254,8 +246,7 @@ main ─────────────────────────
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) — How the multi-agent system works
-- [Mobile Access](docs/MOBILE-ACCESS.md) — iPhone/iPad setup guide
-- [Agents](docs/AGENTS.md) — Detailed agent descriptions and customization
+- [Mobile Access](docs/MOBILE-ACCESS.md) — iPhone/iPad access guide
 - [Terraform](docs/TERRAFORM.md) — Azure VM provisioning
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and fixes
 - [Procedure](docs/PROCEDURE.md) — Complete step-by-step setup

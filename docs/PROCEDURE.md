@@ -108,39 +108,34 @@ cd ~/workspace
 git clone https://github.com/ton-user/ton-projet.git
 cd ton-projet
 
-# Lancer les 9 agents
-bash ~/setup-claude-code-mobile-first/scripts/07-launch-agents.sh \
-  --project ~/workspace/ton-projet
+# Lancer le Forge (mode autonome)
+bash scripts/forge-panes.sh --init
+tmux attach -t forge
+# puis dans l'orchestrateur : /forge <US-numero>
 ```
 
-Ca lance une session **tmux** avec 9 agents specialises + un moniteur :
+Ca lance une session **tmux** avec l'orchestrateur + monitor. Le Forge cree dynamiquement les agents necessaires :
 
-| Tab | Agent | Modele | Role |
-|-----|-------|--------|------|
-| 1 | orchestrateur | Opus | Cerveau central, planifie et coordonne |
-| 2 | backend-dev | Sonnet | API REST, Express.js, logique metier |
-| 3 | frontend-dev | Sonnet | UI/UX, responsive, mobile-first |
-| 4 | admin-sys | Sonnet | Infra, reseau, securite systeme |
-| 5 | devops | Sonnet | CI/CD, Docker, Terraform, monitoring |
-| 6 | testeur | Haiku | Tests unitaires, integration, E2E |
-| 7 | reviewer | Sonnet | Revue code + securite OWASP |
-| 8 | stabilizer | Sonnet | Verification build, tests, deploy |
-| 9 | manager | Opus | Suivi projet, priorisation, rapports |
-| 10 | monitor | - | `watch` sur git status + board |
+| Window | Role |
+|--------|------|
+| orchestrateur | Team Lead (Forge) — Claude Code avec /forge |
+| monitor | Dashboard temps reel des agents |
+| *agents* | Crees dynamiquement selon l'US (mobile-dev, stabilizer, etc.) |
 
-### Lancer seulement certains agents
+### Commandes utiles
 
 ```bash
-# Juste l'orchestrateur et le backend
-bash ~/setup-claude-code-mobile-first/scripts/07-launch-agents.sh \
-  --project ~/workspace/ton-projet \
-  --agents orchestrateur backend-dev testeur
+# Ajouter des agents manuellement
+bash scripts/forge-add-agents.sh mobile-dev responsive-tester stabilizer
 
-# Voir la liste des agents disponibles
-bash ~/setup-claude-code-mobile-first/scripts/07-launch-agents.sh --list
+# Voir les agents actifs
+bash scripts/forge-add-agents.sh --list
 
-# Arreter tous les agents
-bash ~/setup-claude-code-mobile-first/scripts/07-launch-agents.sh --kill
+# Retirer tous les agents (fin d'US)
+bash scripts/forge-add-agents.sh --cleanup
+
+# Fermer la session
+bash scripts/forge-panes.sh --kill
 ```
 
 ---
@@ -157,9 +152,9 @@ Le prefixe tmux est **Ctrl+A** (plus facile que Ctrl+B sur mobile).
 | Vue arbre (tous les agents) | `Ctrl+A` puis `w` |
 | Scroller vers le haut | `Ctrl+A` puis `[` puis fleches |
 | Se detacher (agents continuent) | `Ctrl+A` puis `d` |
-| Se re-attacher | `tmux attach -t claude-agents` |
+| Se re-attacher | `tmux attach -t forge` |
 
-> Les agents **continuent de tourner** meme si tu fermes Safari. Il suffit de revenir et taper `tmux attach -t claude-agents`.
+> Les agents **continuent de tourner** meme si tu fermes Safari. Il suffit de revenir et taper `tmux attach -t forge`.
 
 ---
 
@@ -187,7 +182,7 @@ Les agents se coordonnent via le fichier `.claude/board.md` dans ton projet :
 [backend-dev -> testeur] Endpoints prets, tu peux ecrire les tests
 ```
 
-L'**orchestrateur** distribue les taches, chaque agent met a jour son statut, le **manager** suit l'avancement.
+Le **Forge** (Team Lead) distribue les taches via `.forge/tasks/`, chaque agent met a jour son statut dans `.forge/status/`, et les resultats sont collectes dans `.forge/results/`.
 
 ---
 
@@ -205,7 +200,6 @@ L'**orchestrateur** distribue les taches, chaque agent met a jour son statut, le
 | Probleme | Solution |
 |----------|----------|
 | Safari dit "Non securise" | Normal en HTTP. Utiliser un VPN (Tailscale) pour securiser |
-| Connexion coupee sur iPhone | `tmux attach -t claude-agents` pour reprendre |
-| Agent ne demarre pas | Verifier `~/.claude-env` et relancer le script |
-| Trop cher en API | Changer les agents Opus en Sonnet dans `configs/agents.conf` |
-| Ajouter un agent custom | Ajouter une ligne dans `configs/agents.conf` et relancer |
+| Connexion coupee sur iPhone | `tmux attach -t forge` pour reprendre |
+| Agent ne demarre pas | Verifier `~/.claude-env` et relancer `forge-panes.sh --init` |
+| Ajouter un agent custom | Creer un skill dans `.claude/skills/<nom>/SKILL.md` |
