@@ -89,7 +89,16 @@ Puis dans Claude Code : `/init-project`
 
 ## Multi-Agent avec tmux
 
-### Mode Forge (monitoring)
+### Mode Forge autonome (recommandé)
+
+```bash
+# L'orchestrateur crée ses agents dynamiquement selon l'US
+bash scripts/forge-panes.sh --init
+tmux attach -t forge
+# puis dans l'orchestrateur : /forge <US-numero>
+```
+
+### Mode Forge manuel (agents prédéfinis)
 
 ```bash
 # Créer la session avec les agents nécessaires
@@ -115,9 +124,18 @@ tmux attach -t agents
 ### Commandes
 
 ```bash
-# Forge monitoring
+# Forge session
+bash scripts/forge-panes.sh --init            # Lancer l'orchestrateur seul (mode autonome)
 bash scripts/forge-panes.sh --list            # Agents actifs
 bash scripts/forge-panes.sh --kill            # Fermer la session
+
+# Agent management (dynamique)
+bash scripts/forge-add-agents.sh <a1> <a2>    # Ajouter des agents à la session
+bash scripts/forge-add-agents.sh --remove <a> # Retirer un agent
+bash scripts/forge-add-agents.sh --cleanup    # Retirer TOUS les agents (fin d'US)
+bash scripts/forge-add-agents.sh --list       # Voir les windows tmux
+
+# Monitoring & dispatch
 bash scripts/agent-status.sh                  # Dashboard
 bash scripts/dispatch.sh <agent> "tâche"      # Dispatch manuel
 bash scripts/collect.sh <agent> --wait        # Lire un résultat
@@ -192,6 +210,7 @@ setup-claude-code-mobile-first/
 │   ├── search-skills.sh          # Search community skills
 │   ├── install-skill.sh          # Install skill from GitHub
 │   ├── forge-panes.sh            # tmux forge session manager
+│   ├── forge-add-agents.sh       # Dynamic agent creation/removal/cleanup
 │   ├── dispatch.sh               # Send task to agent
 │   ├── collect.sh                # Read agent result
 │   ├── agent-watcher.sh          # Passive agent monitor
