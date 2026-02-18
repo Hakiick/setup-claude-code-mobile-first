@@ -10,8 +10,8 @@ set -euo pipefail
 #   bash scripts/forge-panes.sh --kill
 # ============================================
 
-SESSION_NAME="forge"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(dirname "$0")/forge-session-name.sh"
 FORGE_DIR="${PROJECT_DIR}/.forge"
 SCRIPTS_DIR="${PROJECT_DIR}/scripts"
 
@@ -39,7 +39,7 @@ show_usage() {
     echo ""
     echo "Mode recommandé (l'orchestrateur choisit ses agents) :"
     echo "  bash scripts/forge-panes.sh --init"
-    echo "  tmux attach -t forge"
+    echo "  tmux attach -t ${SESSION_NAME}"
     echo "  # puis dans la window orchestrateur : /forge <US-numero>"
     echo ""
     echo "Mode manuel (agents prédéfinis) :"

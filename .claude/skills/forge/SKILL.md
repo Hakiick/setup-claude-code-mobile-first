@@ -74,26 +74,35 @@ Ces agents ont été auto-générés par `/init-project` et sont spécialisés p
 **Modèles pour les subagents :**
 - **Tous les agents** → **model: "opus"**
 
-#### Créer les agents dans la session tmux (Mode Team Agents)
+#### Créer les agents dans la session tmux (OBLIGATOIRE)
 
-Une fois l'équipe déterminée, **crée les agents dynamiquement** dans la session tmux :
+**YOU MUST** exécuter `bash scripts/forge-add-agents.sh` pour créer les windows tmux.
+**YOU MUST NOT** créer les dossiers `.forge/` manuellement avec `mkdir -p`.
+**YOU MUST NOT** écrire dans `.forge/status/` ou `.forge/tasks/` sans avoir d'abord exécuté `forge-add-agents.sh`.
+
+Le script `forge-add-agents.sh` fait TOUT automatiquement :
+- Crée les windows tmux pour chaque agent
+- Lance les `agent-watcher.sh` dans chaque window
+- Initialise les fichiers `.forge/status/<agent>` à "idle"
 
 ```bash
-# Créer les windows tmux pour chaque agent de l'équipe
+# ÉTAPE 1 — Créer les agents (OBLIGATOIRE — une seule commande)
 bash scripts/forge-add-agents.sh <agent1> <agent2> <agent3> ...
 
 # Exemple pour une US mobile-first :
 bash scripts/forge-add-agents.sh architect mobile-dev responsive-tester reviewer stabilizer
+```
 
-# Vérifier que les agents sont bien créés
+```bash
+# ÉTAPE 2 — Vérifier que les agents sont créés (OBLIGATOIRE)
 bash scripts/forge-add-agents.sh --list
 ```
 
-**Le forge décide** quels agents créer en fonction de l'US. Il n'y a pas de liste fixe.
-Les windows tmux sont créées à la volée, et les `agent-watcher.sh` démarrent automatiquement.
+**Si `--list` ne montre pas les agents attendus → NE PAS continuer. Relancer le script.**
 
-**Si un agent supplémentaire est nécessaire** en cours de pipeline (ex: besoin inattendu d'un `pwa-dev`),
-le forge peut en ajouter à tout moment :
+**Le forge décide** quels agents créer en fonction de l'US. Il n'y a pas de liste fixe.
+
+**Si un agent supplémentaire est nécessaire** en cours de pipeline :
 ```bash
 bash scripts/forge-add-agents.sh pwa-dev
 ```
@@ -138,6 +147,21 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 
 ---
 
+## Checkpoint obligatoire — Vérifier les agents AVANT Phase 3
+
+**YOU MUST** exécuter ce checkpoint avant de passer à la Phase 3.
+**YOU MUST NOT** passer à la Phase 3 si ce checkpoint échoue.
+
+```bash
+# Vérifier que les windows tmux des agents existent (pas juste les fichiers status)
+tmux list-windows -t forge -F '#{window_name}' 2>/dev/null
+```
+
+Le résultat DOIT contenir les noms des agents créés en Phase 1.2 (en plus de `orchestrateur` et `monitor`).
+Si les agents n'apparaissent PAS dans la liste → **retourner en Phase 1.2** et exécuter `forge-add-agents.sh`.
+
+---
+
 ## Phase 3 — Exécution du pipeline (avec feedback loops)
 
 Exécute les agents **dans l'ordre** mais avec des **boucles de correction**.
@@ -152,18 +176,19 @@ Exécute les agents **dans l'ordre** mais avec des **boucles de correction**.
 Avant d'exécuter le pipeline, détecte le mode disponible :
 
 ```bash
-# Vérifier si une session tmux forge existe
-tmux has-session -t forge 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
+# Vérifier si une session tmux forge existe ET si elle contient des windows agents
+TMUX_WINDOWS=$(tmux list-windows -t forge -F '#{window_name}' 2>/dev/null || echo "")
+AGENT_WINDOWS=$(echo "$TMUX_WINDOWS" | grep -cvE '^(orchestrateur|monitor)$' 2>/dev/null || echo "0")
 
-# Vérifier si des agents ont été créés (par Phase 1.2 ou manuellement)
-FORGE_AGENTS=$(ls .forge/status/ 2>/dev/null | head -20)
+echo "TMUX_WINDOWS: $TMUX_WINDOWS"
+echo "AGENT_WINDOWS_COUNT: $AGENT_WINDOWS"
 ```
 
-**Si session tmux `forge` active ET `.forge/status/` contient des agents** → **Mode Team Agents** (délégation via fichiers)
-**Sinon** → **Mode Sub Agents** (comportement actuel via Task(), inchangé)
+**Si `AGENT_WINDOWS` > 0** (des windows agents existent dans tmux) → **Mode Team Agents**
+**Sinon** → **Mode Sub Agents** (fallback via Task() seul, sans monitoring tmux)
 
-**Note :** En mode `--init`, le forge a déjà créé ses agents en Phase 1.2 via `forge-add-agents.sh`.
-Les agents sont donc disponibles en Mode Team Agents dès la Phase 3.
+**IMPORTANT** : La détection se base sur les **windows tmux**, PAS sur les fichiers `.forge/status/`.
+Les fichiers seuls ne suffisent pas — les watchers tmux doivent tourner pour le monitoring.
 
 Le mode est décidé UNE FOIS en début de Phase 3 et reste le même pour toute la pipeline.
 
