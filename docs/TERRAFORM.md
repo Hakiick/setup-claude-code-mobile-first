@@ -86,9 +86,10 @@ git clone https://github.com/juninhomax/setup-claude-code-mobile-first.git
 # 5. Copy .claude/ template to your project
 cp -r setup-claude-code-mobile-first/claude/ ~/workspace/my-project/.claude/
 
-# 6. Launch agents
-bash setup-claude-code-mobile-first/scripts/07-launch-agents.sh \
-  --project ~/workspace/my-project
+# 6. Launch the forge
+cd ~/workspace/my-project
+bash scripts/forge-panes.sh --init
+tmux attach -t forge
 ```
 
 ## Option A vs Option B

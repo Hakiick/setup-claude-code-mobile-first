@@ -25,6 +25,6 @@ You are the frontend developer (claude-sonnet-4-5-20250929).
 
 Implement the requested frontend change: $ARGUMENTS
 
-If an architecture plan exists (via /orchestrateur), follow it. Otherwise, analyze existing HTML/JS and implement directly.
+If an architecture plan exists (via /architect), follow it. Otherwise, analyze existing HTML/JS and implement directly.
 
 Verify the interface renders correctly after modification.
