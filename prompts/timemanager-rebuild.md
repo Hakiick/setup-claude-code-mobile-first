@@ -314,20 +314,39 @@ Noms de branches :
 #### 3. Mettre à jour board.md
 Renseigne la US courante, la branche, le statut "in-progress", l'équipe.
 
-#### 4. Implémenter avec le pipeline d'agents
+#### 4. Implémenter avec `/forge` (mode team agents — OBLIGATOIRE)
 
-Exécute les skills dans l'ordre, ou utilise `/forge` :
+**YOU MUST** utiliser `/forge` pour chaque US. C'est le mode team agents : le forge décompose la US, lance les agents spécialisés dans des panes tmux séparés, orchestre les boucles de feedback, et livre stable.
 
-1. **`/architect`** (si US complexe) — Planifie les fichiers à créer/modifier, identifie les dépendances
-2. **`/mobile-dev`** — Implémente le code mobile-first
-3. **`/responsive-tester`** (US-02, US-10) — Teste sur les viewports 375px → 1920px
-4. **`/reviewer`** (US importantes) — Revue qualité, sécurité, responsive
-5. **`/stabilizer`** — Vérifie build + lint + type-check
+```bash
+# Lancer le forge (il détecte automatiquement les agents à utiliser via board.md)
+/forge
+# Ou avec un numéro d'issue GitHub si les issues sont créées :
+/forge <issue-number>
+```
 
-**Boucles de feedback** :
+Le forge va automatiquement :
+1. Décomposer la US en sous-tâches
+2. Lancer les agents spécialisés (mobile-dev, responsive-tester, pwa-dev, etc.)
+3. Dispatcher les tâches aux agents via `scripts/dispatch.sh`
+4. Collecter les résultats via `scripts/collect.sh`
+5. Gérer les boucles de feedback (test → fix → re-test)
+6. Stabiliser avant de rendre la main
+
+**Agents disponibles par US** (le forge les sélectionne automatiquement) :
+- **mobile-dev** : Développeur mobile-first (toutes les US)
+- **responsive-tester** : Testeur multi-viewports (US-02, US-05, US-10)
+- **pwa-dev** : Spécialiste PWA (US-08)
+- **reviewer** : Revue qualité (US-03, US-06, US-10)
+- **stabilizer** : Build + lint + type-check (toutes les US)
+
+**Boucles de feedback gérées par le forge** :
 - Tester trouve un bug → retour au mobile-dev → max **3 boucles**
 - Reviewer trouve un problème → retour au mobile-dev → max **2 boucles**
 - Stabilizer échoue → fix et re-run → max **5 boucles**
+
+**Si le forge n'est pas disponible** (fallback linéaire) :
+Utilise les skills individuellement dans cet ordre : `/architect` → `/mobile-dev` → `/responsive-tester` → `/reviewer` → `/stabilizer`
 
 #### 5. Commits atomiques au fur et à mesure
 Format : `type(scope): description courte`
@@ -351,7 +370,122 @@ a11y(ui): add ARIA labels to all interactive elements
 test(responsive): add multi-viewport Playwright tests
 ```
 
-#### 6. Stabiliser
+#### 6. Capturer des screenshots pour le portfolio
+
+**YOU MUST** prendre des screenshots après chaque US visuelle (toutes sauf US-08 PWA).
+
+Crée un script Playwright de capture dans `frontend/scripts/screenshots.ts` lors de la US-01, puis réutilise-le à chaque US. Les screenshots servent au portfolio du développeur.
+
+**Setup (à faire une fois dans US-01)** :
+```bash
+cd /home/user/T-POO-700-STG_1/frontend
+npx playwright install chromium
+```
+
+**Script de capture** (`frontend/scripts/screenshots.ts`) :
+```typescript
+import { chromium } from 'playwright';
+
+const VIEWPORTS = [
+  { name: 'mobile', width: 375, height: 812 },
+  { name: 'tablet', width: 768, height: 1024 },
+  { name: 'desktop', width: 1440, height: 900 },
+];
+
+const PAGES = [
+  { name: 'clock', path: '/clock' },
+  { name: 'dashboard', path: '/dashboard' },
+  { name: 'team', path: '/team' },
+  { name: 'admin', path: '/admin' },
+  { name: 'login', path: '/login' },
+];
+
+async function capture() {
+  const browser = await chromium.launch();
+  for (const vp of VIEWPORTS) {
+    const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+    const page = await context.newPage();
+    for (const p of PAGES) {
+      try {
+        await page.goto(`http://localhost:5173${p.path}`, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(1000); // laisser les animations se jouer
+        await page.screenshot({
+          path: `screenshots/${p.name}-${vp.name}.png`,
+          fullPage: false,
+        });
+        console.log(`✓ ${p.name}-${vp.name}.png`);
+      } catch (e) {
+        console.log(`✗ ${p.name}-${vp.path} — skipped (page not ready)`);
+      }
+    }
+    await context.close();
+  }
+  // Vidéo de la feature principale (Clock) — mobile
+  const videoCtx = await browser.newContext({
+    viewport: { width: 375, height: 812 },
+    recordVideo: { dir: 'screenshots/videos/', size: { width: 375, height: 812 } },
+  });
+  const videoPage = await videoCtx.newPage();
+  try {
+    await videoPage.goto('http://localhost:5173/clock', { waitUntil: 'networkidle' });
+    await videoPage.waitForTimeout(3000); // capturer l'animation du clock widget
+    // Simuler un tap sur le bouton clock
+    const clockBtn = videoPage.locator('[data-testid="clock-button"], button:has-text("Clock")').first();
+    if (await clockBtn.isVisible()) {
+      await clockBtn.click();
+      await videoPage.waitForTimeout(2000);
+    }
+  } catch (e) {
+    console.log('Video capture: clock page not ready, skipped interaction');
+  }
+  await videoCtx.close(); // la vidéo est sauvée automatiquement à la fermeture
+  await browser.close();
+  console.log('\n📸 Screenshots saved in screenshots/');
+  console.log('🎥 Video saved in screenshots/videos/');
+}
+
+capture();
+```
+
+**Quand capturer** :
+- Après chaque US visuelle terminée et stabilisée
+- AVANT le rebase/push (comme ça les screenshots sont dans la PR)
+- Le dev server doit tourner (`npm run dev` en background)
+
+```bash
+# Lancer le dev server en background
+cd /home/user/T-POO-700-STG_1/frontend && npm run dev &
+# Attendre que le serveur soit prêt
+sleep 5
+# Capturer
+cd /home/user/T-POO-700-STG_1/frontend && npx tsx scripts/screenshots.ts
+# Arrêter le dev server
+kill %1
+```
+
+**Nommage des screenshots** (dans `frontend/screenshots/`) :
+```
+screenshots/
+├── clock-mobile.png        ← Feature WOW sur iPhone
+├── clock-tablet.png
+├── clock-desktop.png
+├── dashboard-mobile.png
+├── dashboard-tablet.png
+├── dashboard-desktop.png
+├── team-mobile.png
+├── ...
+└── videos/
+    └── clock-interaction.webm  ← Vidéo de l'interaction clock in/out
+```
+
+**Committer les screenshots** avec chaque US :
+```
+docs(screenshots): capture US-XX responsive screenshots
+```
+
+**Ajouter `screenshots/` au `.gitignore` si les fichiers sont trop lourds** — dans ce cas, les garder localement et ne committer qu'un `screenshots/README.md` listant les captures disponibles.
+
+#### 7. Stabiliser
 ```bash
 cd /home/user/T-POO-700-STG_1/frontend && npm run build && npx tsc --noEmit
 ```
@@ -359,7 +493,7 @@ Ou si le script est adapté : `bash scripts/stability-check.sh`
 
 **NE PASSE PAS** à l'étape suivante si la stabilité échoue.
 
-#### 7. Rebase + push
+#### 8. Rebase + push
 ```bash
 git fetch origin rebuild/mobile-first
 git rebase origin/rebuild/mobile-first
@@ -368,7 +502,7 @@ cd /home/user/T-POO-700-STG_1/frontend && npm run build
 git push --force-with-lease origin feat/frontend/<description>
 ```
 
-#### 8. Créer la PR
+#### 9. Créer la PR
 ```bash
 gh pr create \
   --base rebuild/mobile-first \
@@ -388,17 +522,17 @@ gh pr create \
 ✓ npx tsc --noEmit — OK"
 ```
 
-#### 9. Merger la PR
+#### 10. Merger la PR
 ```bash
 gh pr merge --squash --delete-branch
 ```
 
-#### 10. Mettre à jour board.md
+#### 11. Mettre à jour board.md
 - Déplace la US dans "US Terminées" avec la date et un résumé
 - Ajoute une entrée dans "Journal"
 - Vide la section "US Courante"
 
-#### 11. Nettoyage contexte
+#### 12. Nettoyage contexte
 Si le contexte devient lourd après 2-3 US, utilise `/compact`. Après un compact, relis en priorité :
 1. `board.md` (ta mémoire persistante)
 2. `project.md` (les US restantes)
@@ -501,7 +635,9 @@ Le projet est terminé quand TOUTES ces conditions sont remplies :
 7. ✅ PWA installable avec mode offline basique
 8. ✅ WCAG AA respecté (contraste, ARIA, focus visible)
 9. ✅ Le board.md reflète les 10 US terminées avec résumés
-10. ✅ L'effet WOW est là — le clock widget est spectaculaire
+10. ✅ Screenshots capturés pour les pages clés (mobile, tablet, desktop) dans `frontend/screenshots/`
+11. ✅ Vidéo de l'interaction clock in/out capturée dans `frontend/screenshots/videos/`
+12. ✅ L'effet WOW est là — le clock widget est spectaculaire
 
 ---
 
