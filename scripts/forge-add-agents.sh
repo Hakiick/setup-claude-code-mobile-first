@@ -136,9 +136,9 @@ cleanup_agents() {
         removed=$((removed + 1))
     done
 
-    # Compter les agents retirés (la boucle while est dans un subshell à cause du pipe)
+    # Compter les windows non-système restantes (grep -c retourne exit 1 si count=0)
     local total
-    total=$(tmux list-windows -t "${SESSION_NAME}" -F '#{window_name}' 2>/dev/null | grep -cvE '^(orchestrateur|monitor)$' || echo "0")
+    total=$(tmux list-windows -t "${SESSION_NAME}" -F '#{window_name}' 2>/dev/null | grep -cvE '^(orchestrateur|monitor)$') || total=0
 
     if [ "${total}" -eq 0 ]; then
         echo -e "${GREEN}[forge]${NC} Cleanup terminé — tous les agents ont été retirés."
