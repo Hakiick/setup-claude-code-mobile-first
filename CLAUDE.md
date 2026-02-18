@@ -169,11 +169,12 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 **Détection du mode** (une seule fois en début de Phase 3) :
 
 ```bash
-tmux has-session -t forge 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
+SESSION_NAME=$(source scripts/forge-session-name.sh && echo "$SESSION_NAME")
+tmux has-session -t "$SESSION_NAME" 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
 FORGE_AGENTS=$(ls .forge/status/ 2>/dev/null | head -20)
 ```
 
-- **Si session tmux `forge` active ET `.forge/status/` contient des agents** → **Mode Team Agents**
+- **Si session tmux `$SESSION_NAME` active ET `.forge/status/` contient des agents** → **Mode Team Agents**
 - **Sinon** → **Mode Sub Agents** (fallback via Task() simple)
 
 #### Exécuter une tâche pour un agent (Mode Team Agents)

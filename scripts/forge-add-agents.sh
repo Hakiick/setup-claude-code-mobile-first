@@ -17,8 +17,8 @@ set -euo pipefail
 #   bash scripts/forge-add-agents.sh --cleanup    # Retire tous les agents (garde orchestrateur + monitor)
 # ============================================
 
-SESSION_NAME="forge"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(dirname "$0")/forge-session-name.sh"
 FORGE_DIR="${PROJECT_DIR}/.forge"
 SCRIPTS_DIR="${PROJECT_DIR}/scripts"
 

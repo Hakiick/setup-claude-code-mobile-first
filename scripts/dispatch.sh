@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 FORGE_DIR="$PROJECT_DIR/.forge"
 SCRIPT_NAME="$(basename "$0")"
+source "${SCRIPT_DIR}/forge-session-name.sh"
 
 # ── Couleurs ──────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -60,8 +61,8 @@ shift
 # ── Vérification de la session tmux forge ────────────────────────────
 
 check_forge_session() {
-  if ! tmux has-session -t forge 2>/dev/null; then
-    err "No forge session. Run: bash scripts/forge-panes.sh"
+  if ! tmux has-session -t "${SESSION_NAME}" 2>/dev/null; then
+    err "No forge session '${SESSION_NAME}'. Run: bash scripts/forge-panes.sh"
   fi
 }
 
@@ -88,9 +89,9 @@ get_status() {
 find_agent_pane() {
   local agent="$1"
   local pane_index
-  pane_index=$(tmux list-panes -t forge -F '#{pane_index} #{pane_title}' | grep "$agent" | awk '{print $1}')
+  pane_index=$(tmux list-panes -t "${SESSION_NAME}" -F '#{pane_index} #{pane_title}' | grep "$agent" | awk '{print $1}')
   if [[ -z "$pane_index" ]]; then
-    err "No pane found for agent '$agent' in forge session"
+    err "No pane found for agent '$agent' in session '${SESSION_NAME}'"
   fi
   echo "$pane_index"
 }
@@ -183,7 +184,7 @@ echo "busy" > "$FORGE_DIR/status/$AGENT"
 # ── Trouver le pane et envoyer le prompt ─────────────────────────────
 
 PANE_INDEX=$(find_agent_pane "$AGENT")
-TARGET="forge:${PANE_INDEX}"
+TARGET="${SESSION_NAME}:${PANE_INDEX}"
 
 prompt_length=${#PROMPT}
 
