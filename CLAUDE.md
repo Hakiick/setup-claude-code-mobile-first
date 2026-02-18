@@ -101,6 +101,213 @@ gh pr view <numero>                   # Détail d'une PR
 
 > `/next-feature` reste disponible comme alternative linéaire pour les features simples.
 
+---
+
+## Forge — Protocole d'orchestration multi-agents
+
+Le `/forge` est le Team Lead. Il orchestre une équipe d'agents via le système tmux + `.forge/`.
+
+### Architecture `.forge/`
+
+```
+.forge/
+├── tasks/          # Tâches écrites par le forge pour chaque agent
+│   └── <agent>.md  # Description détaillée de la sous-tâche
+├── status/         # Statut de chaque agent (idle | working | done | error | offline)
+│   └── <agent>     # Fichier texte avec le statut
+└── results/        # Résultats produits par chaque agent
+    └── <agent>.md  # Compte-rendu du travail effectué
+```
+
+### Phase 0 — Sélection de l'US
+
+```bash
+# Vérifier l'éligibilité (obligatoire — exit 1 = bloquée)
+bash scripts/check-us-eligibility.sh <numero>
+# Lire le body complet
+gh issue view <numero> --json number,title,body,labels --jq '.'
+```
+
+**YOU MUST NOT** continuer si le script retourne exit 1.
+
+### Phase 1 — Analyse et décomposition (Team Lead)
+
+Le forge analyse l'US **lui-même** avant de déléguer :
+
+1. **Comprendre le scope** — critères d'acceptance, dépendances, type de feature
+2. **Choisir l'équipe** — priorité aux agents listés dans le body de l'issue
+3. **Créer les agents tmux** — obligatoire avant l'exécution :
+
+```bash
+# Créer les windows tmux pour chaque agent
+bash scripts/forge-add-agents.sh <agent1> <agent2> <agent3> ...
+# Vérifier que les agents sont créés
+bash scripts/forge-add-agents.sh --list
+```
+
+4. **Décomposer en sous-tâches** avec TodoWrite, chaque sous-tâche assignée à un agent
+
+**Ordre d'exécution des agents :**
+- Planification (`architect`) → en premier
+- Développement (`*-dev`, `mobile-dev`, `pwa-dev`) → ensuite
+- Tests (`*-tester`, `responsive-tester`) → après l'implémentation
+- Revue (`reviewer`) → après les tests
+- Stabilisation (`stabilizer`) → toujours en dernier
+
+### Phase 2 — Setup Git
+
+```bash
+git checkout main
+git pull --rebase origin main
+git checkout -b type/scope/description-courte
+git push -u origin type/scope/description-courte
+gh issue edit <numero> --add-label "in-progress" --remove-label "task"
+```
+
+### Phase 3 — Exécution du pipeline (Mode Team Agents)
+
+**Détection du mode** (une seule fois en début de Phase 3) :
+
+```bash
+tmux has-session -t forge 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
+FORGE_AGENTS=$(ls .forge/status/ 2>/dev/null | head -20)
+```
+
+- **Si session tmux `forge` active ET `.forge/status/` contient des agents** → **Mode Team Agents**
+- **Sinon** → **Mode Sub Agents** (fallback via Task() simple)
+
+#### Exécuter une tâche pour un agent (Mode Team Agents)
+
+**Étape 1 — Écrire la tâche et signaler le démarrage** :
+
+```bash
+cat > .forge/tasks/<agent-name>.md << 'TASK'
+# Tâche : [titre court]
+
+## Contexte
+- Projet : [chemin absolu du projet]
+- Branche : [branche courante]
+- US : [numéro et titre de l'issue]
+
+## Ce que tu dois faire
+[Description détaillée de la sous-tâche]
+
+## Fichiers concernés
+[Liste des fichiers à créer/modifier]
+
+## Critères d'acceptance
+[Liste vérifiable]
+
+## Règles
+- Respecte .claude/rules/
+- Commite avec format type(scope): description
+- Ne touche PAS aux fichiers hors scope
+TASK
+
+echo "working" > .forge/status/<agent-name>
+```
+
+**Étape 2 — Lancer le Task() subagent** :
+
+Utilise `Task()` avec le contenu de la tâche comme prompt. Le subagent exécute le travail.
+Le prompt DOIT inclure :
+- Le contenu complet de `.forge/tasks/<agent-name>.md`
+- L'identité : "Tu es l'agent `<agent-name>`"
+- Les règles du projet
+- **Le modèle** : `model: "opus"` pour **tous** les agents
+
+**Étape 3 — Écrire le résultat et mettre à jour le statut** :
+
+```bash
+echo "<résultat du Task()>" > .forge/results/<agent-name>.md
+echo "done" > .forge/status/<agent-name>    # ou "error" si échec
+```
+
+#### Tâches parallèles
+
+Si deux agents n'ont pas de dépendance entre eux → lancer les deux `Task()` **en parallèle** (multiple tool calls dans un seul message).
+
+```bash
+echo "working" > .forge/status/agent-1
+echo "working" > .forge/status/agent-2
+```
+
+#### Feedback loops
+
+> Après chaque agent, **évalue le résultat** avant de passer au suivant.
+> Si insatisfaisant → **renvoie** à l'agent approprié.
+
+| Boucle | Max itérations |
+|--------|---------------|
+| developer ↔ tester | 3 |
+| developer ↔ reviewer | 2 |
+| stabilizer retry | 5 |
+
+Au-delà → **stop et demande à l'utilisateur**.
+
+### Évaluation par le Team Lead
+
+| Après agent | Check | Si échec |
+|------------|-------|----------|
+| `*-dev` | `npx tsc --noEmit` | → Renvoyer au dev avec les erreurs |
+| `*-tester` | `npm test` | → Bug code = renvoyer au dev ; Bug test = renvoyer au tester |
+| `reviewer` | Rapport critiques vs suggestions | → Critiques = renvoyer au dev |
+| `stabilizer` | `bash scripts/stability-check.sh` | → Simple = stabilizer corrige ; Complexe = renvoyer au dev |
+
+### Phase 4 — Rebase final + PR
+
+```bash
+git fetch origin main && git rebase origin/main
+bash scripts/stability-check.sh      # Obligatoire après rebase
+git push --force-with-lease origin type/scope/description-courte
+gh pr create --title "type(scope): description" --base main --body "..."
+```
+
+Le body de la PR DOIT contenir : `## Summary`, `## Test plan`, `## Stability`, `## Forge Report`.
+
+### Phase 5 — Clôture
+
+```bash
+gh issue edit <numero> --add-label "done" --remove-label "in-progress"
+gh issue close <numero>
+# Cleanup agents tmux
+bash scripts/forge-add-agents.sh --cleanup
+# Retour sur main
+git checkout main && git pull --rebase origin main
+```
+
+Utilise `/compact` pour nettoyer le contexte entre chaque US.
+
+### Gestion des erreurs (décisions Team Lead)
+
+| Situation | Décision |
+|-----------|----------|
+| Compilation échoue après dev | → Renvoyer au dev avec les erreurs |
+| Tests échouent (bug code) | → Dev corrige → Tester re-vérifie |
+| Tests échouent (test mal écrit) | → Tester corrige le test |
+| Review critique | → Dev corrige → Tester re-vérifie → Reviewer re-check |
+| Stabilizer échoue (lint) | → Stabilizer corrige directement |
+| Stabilizer échoue (type error) | → Dev corrige → Stabilizer re-check |
+| Rebase avec conflits | → Résoudre → Stabilizer re-check tout |
+| > 3 itérations dev/test | → Alerter l'utilisateur |
+| > 5 itérations stabilizer | → Alerter l'utilisateur |
+| Dépendance bloquée | → Marquer blocked, passer à une autre US |
+
+### Modèles des agents
+
+| Catégorie | Agents | Modèle |
+|-----------|--------|--------|
+| Orchestration | forge | **Opus 4.6** (obligatoire) |
+| Planification | architect | **Opus 4.6** |
+| Développement | mobile-dev, pwa-dev, developer, frontend-dev, backend-dev | **Opus 4.6** |
+| Revue | reviewer | **Opus 4.6** |
+| Test | tester, responsive-tester | **Opus 4.6** |
+| Validation | stabilizer | **Opus 4.6** |
+
+**IMPORTANT : Tous les agents Task() DOIVENT utiliser `model: "opus"`. Jamais de sonnet ni haiku.**
+
+---
+
 ## Stratégie Git
 
 ```
