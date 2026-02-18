@@ -15,9 +15,29 @@ Tu vas travailler **pendant plusieurs heures**, en totale autonomie, sans interv
 
 - **Tous les commits et push** vont sur le repo `Hakiick/T-POO-700-STG_1`
 - **Tu ne touches JAMAIS** au repo `setup-claude-code-mobile-first` — c'est un template source en lecture seule
-- **Tu ne modifies JAMAIS** le backend Elixir/Phoenix (dossier `backend/`)
-- **Tu ne modifies JAMAIS** le `docker-compose.yml`
-- **Tu travailles exclusivement** dans le dossier `frontend/`
+- **Tu travailles principalement** dans le dossier `frontend/`
+
+### Périmètre backend et docker-compose
+
+Le backend Elixir/Phoenix et le docker-compose sont **en lecture seule par défaut**. Cependant, certaines situations peuvent nécessiter des ajustements mineurs. Voici les cas autorisés :
+
+| Cas | Autorisé ? | Exemple |
+|-----|-----------|---------|
+| Lire le code backend pour comprendre l'API | ✅ Toujours | Lire les controllers Phoenix pour trouver les routes/endpoints |
+| Modifier la config Vite (proxy API) | ✅ Toujours | `vite.config.ts` → proxy `/api` vers le backend |
+| Modifier `docker-compose.yml` pour le dev frontend | ✅ Si nécessaire | Ajouter un volume, changer un port exposé, ajouter des variables d'env |
+| Ajouter des CORS headers côté backend | ⚠️ Dernier recours | Si le proxy Vite ne suffit pas, modifier `backend/lib/**/endpoint.ex` ou `router.ex` pour ajouter les headers CORS — commit séparé avec scope `fix(backend)` |
+| Ajouter/modifier un endpoint API | ❌ Non | Le frontend doit s'adapter aux endpoints existants |
+| Refactorer le backend | ❌ Non | Hors scope du rebuild frontend |
+| Changer la logique métier backend | ❌ Non | Hors scope |
+
+**Stratégie si tu es bloqué par le backend** :
+1. **D'abord** : lis le code backend pour comprendre l'API existante (`backend/lib/`)
+2. **Ensuite** : adapte le frontend pour utiliser l'API telle qu'elle est
+3. **Si CORS bloque** : configure le proxy dans `vite.config.ts` (solution préférée)
+4. **Si le proxy ne suffit pas** : ajoute les headers CORS côté backend (commit séparé `fix(backend): add CORS headers for frontend dev`)
+5. **Si un endpoint manque** : mock les données côté frontend avec un composable `useMockData.ts` et ajoute un `// TODO: connect to real API when endpoint available` — ne crée PAS le endpoint backend
+6. **Si docker-compose bloque** : modifie-le avec un commit séparé `fix(docker): <description>`
 
 ---
 
@@ -406,11 +426,14 @@ Si le contexte devient lourd après 2-3 US, utilise `/compact`. Après un compac
 | Conflit rebase | Résous manuellement, `git add` + `git rebase --continue` | 2, sinon `--abort` et recommence |
 | npm install échoue | Vérifie package.json, supprime node_modules et réessaie | 3 |
 | gh CLI échoue | Vérifie l'auth, réessaie | 3 |
+| CORS bloque les appels API | 1) proxy Vite, 2) si insuffisant → CORS headers backend | 2 |
+| Endpoint API manquant | Mock les données frontend + TODO, ne crée PAS l'endpoint | — |
+| Docker-compose bloque le dev | Ajuste la config, commit séparé `fix(docker): ...` | 2 |
+| Backend incompréhensible | Lis les controllers/router Phoenix, trace les routes | — |
 
 ### INTERDIT ❌
-- Modifier `backend/` (Elixir/Phoenix)
-- Modifier `docker-compose.yml`
-- Pousser sur `main` ou `master`
+- Refactorer ou ajouter des endpoints au backend (lire = OK, CORS = dernier recours)
+- Modifier la logique métier backend
 - Utiliser `git push --force` (uniquement `--force-with-lease`)
 - Utiliser `git merge` (uniquement `rebase`)
 - Désactiver un test ou une règle lint
