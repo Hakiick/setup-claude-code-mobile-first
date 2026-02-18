@@ -54,7 +54,7 @@ Tu analyses la US **toi-même** avant de déléguer. C'est ton rôle de Team Lea
 - Si c'est une US `enrichit` ou `après` une autre → lis le résumé de l'US parente (issue fermée)
 - Identifie le **type de feature** : nouvelle feature complexe, feature simple, bug fix, refactoring, config
 
-### 1.2 Choisir l'équipe
+### 1.2 Choisir l'équipe et créer les agents
 
 **Priorité** : utilise les agents listés dans le body de l'issue (section "Équipe agentique").
 Ces agents ont été auto-générés par `/init-project` et sont spécialisés pour ce projet.
@@ -74,6 +74,35 @@ Ces agents ont été auto-générés par `/init-project` et sont spécialisés p
 **Modèles pour les subagents :**
 - `architect`, `developer`, `mobile-dev`, `pwa-dev`, `reviewer` → **model: "opus"**
 - `tester`, `responsive-tester`, `stabilizer` → **model: "sonnet"** minimum
+
+#### Créer les agents dans la session tmux (Mode Team Agents)
+
+Une fois l'équipe déterminée, **crée les agents dynamiquement** dans la session tmux :
+
+```bash
+# Créer les windows tmux pour chaque agent de l'équipe
+bash scripts/forge-add-agents.sh <agent1> <agent2> <agent3> ...
+
+# Exemple pour une US mobile-first :
+bash scripts/forge-add-agents.sh architect mobile-dev responsive-tester reviewer stabilizer
+
+# Vérifier que les agents sont bien créés
+bash scripts/forge-add-agents.sh --list
+```
+
+**Le forge décide** quels agents créer en fonction de l'US. Il n'y a pas de liste fixe.
+Les windows tmux sont créées à la volée, et les `agent-watcher.sh` démarrent automatiquement.
+
+**Si un agent supplémentaire est nécessaire** en cours de pipeline (ex: besoin inattendu d'un `pwa-dev`),
+le forge peut en ajouter à tout moment :
+```bash
+bash scripts/forge-add-agents.sh pwa-dev
+```
+
+**En fin de pipeline**, le forge peut retirer les agents terminés :
+```bash
+bash scripts/forge-add-agents.sh --remove architect
+```
 
 ### 1.3 Décomposer en sous-tâches
 
@@ -120,12 +149,18 @@ Exécute les agents **dans l'ordre** mais avec des **boucles de correction**.
 Avant d'exécuter le pipeline, détecte le mode disponible :
 
 ```bash
-# Vérifier si des agents tmux sont actifs
+# Vérifier si une session tmux forge existe
+tmux has-session -t forge 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
+
+# Vérifier si des agents ont été créés (par Phase 1.2 ou manuellement)
 FORGE_AGENTS=$(ls .forge/status/ 2>/dev/null | head -20)
 ```
 
-**Si `.forge/status/` existe ET contient des agents en "idle"** → **Mode Team Agents** (délégation via fichiers)
+**Si session tmux `forge` active ET `.forge/status/` contient des agents** → **Mode Team Agents** (délégation via fichiers)
 **Sinon** → **Mode Sub Agents** (comportement actuel via Task(), inchangé)
+
+**Note :** En mode `--init`, le forge a déjà créé ses agents en Phase 1.2 via `forge-add-agents.sh`.
+Les agents sont donc disponibles en Mode Team Agents dès la Phase 3.
 
 Le mode est décidé UNE FOIS en début de Phase 3 et reste le même pour toute la pipeline.
 

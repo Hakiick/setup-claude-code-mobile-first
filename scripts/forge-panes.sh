@@ -4,7 +4,8 @@ set -euo pipefail
 # ============================================
 # FORGE PANES — Orchestrateur multi-agents tmux
 # Usage:
-#   bash scripts/forge-panes.sh --agents <agent1> <agent2> ...
+#   bash scripts/forge-panes.sh --init                        # Orchestrateur seul (les agents seront créés par le forge)
+#   bash scripts/forge-panes.sh --agents <agent1> <agent2> ... # Session complète avec agents prédéfinis
 #   bash scripts/forge-panes.sh --list
 #   bash scripts/forge-panes.sh --kill
 # ============================================
@@ -31,13 +32,18 @@ show_usage() {
     echo -e "${GREEN}============================================${NC}"
     echo ""
     echo "Usage:"
-    echo "  bash scripts/forge-panes.sh --agents <agent1> <agent2> ..."
-    echo "  bash scripts/forge-panes.sh --list"
-    echo "  bash scripts/forge-panes.sh --kill"
+    echo "  bash scripts/forge-panes.sh --init                          Lancer l'orchestrateur seul (mode autonome)"
+    echo "  bash scripts/forge-panes.sh --agents <agent1> <agent2> ...  Session complète avec agents"
+    echo "  bash scripts/forge-panes.sh --list                          Voir les agents actifs"
+    echo "  bash scripts/forge-panes.sh --kill                          Fermer la session"
     echo ""
-    echo "Exemples:"
+    echo "Mode recommandé (l'orchestrateur choisit ses agents) :"
+    echo "  bash scripts/forge-panes.sh --init"
+    echo "  tmux attach -t forge"
+    echo "  # puis dans la window orchestrateur : /forge <US-numero>"
+    echo ""
+    echo "Mode manuel (agents prédéfinis) :"
     echo "  bash scripts/forge-panes.sh --agents mobile-dev responsive-tester stabilizer"
-    echo "  bash scripts/forge-panes.sh --agents frontend-dev tester reviewer stabilizer"
 }
 
 kill_session() {
@@ -97,6 +103,53 @@ list_agents() {
 
         printf "  %-25s ${color}%-12s${NC} %-20s\n" "${agent_name}" "${status}" "${time_str}"
     done
+    echo ""
+}
+
+init_session() {
+    # Vérifier si la session existe déjà
+    if tmux has-session -t "${SESSION_NAME}" 2>/dev/null; then
+        echo -e "${YELLOW}[forge]${NC} Session '${SESSION_NAME}' existe déjà. Utilisez --kill d'abord."
+        exit 1
+    fi
+
+    # Créer le dossier .forge/
+    mkdir -p "${FORGE_DIR}/tasks" "${FORGE_DIR}/results" "${FORGE_DIR}/status"
+
+    # Créer la session tmux avec la fenêtre orchestrateur
+    tmux new-session -d -s "${SESSION_NAME}" -n "orchestrateur" -c "${PROJECT_DIR}"
+
+    # Fenêtre 1 : Orchestrateur — lance Claude en mode autonome
+    tmux send-keys -t "${SESSION_NAME}:orchestrateur" \
+        "cd ${PROJECT_DIR} && claude --dangerously-skip-permissions" Enter
+
+    # Fenêtre monitor (la seule autre fenêtre au démarrage)
+    tmux new-window -t "${SESSION_NAME}" -n "monitor" -c "${PROJECT_DIR}"
+    tmux send-keys -t "${SESSION_NAME}:monitor" \
+        "cd ${PROJECT_DIR} && bash scripts/forge-monitor.sh ${PROJECT_DIR}" Enter
+
+    # Revenir à la fenêtre orchestrateur
+    tmux select-window -t "${SESSION_NAME}:orchestrateur"
+
+    # Afficher le résumé
+    echo -e "${GREEN}============================================${NC}"
+    echo -e "${GREEN}  FORGE — Orchestrateur autonome${NC}"
+    echo -e "${GREEN}============================================${NC}"
+    echo -e "  ${GRAY}Projet  :${NC} ${PROJECT_DIR}"
+    echo -e "  ${GRAY}Session :${NC} ${SESSION_NAME}"
+    echo -e "  ${GRAY}Mode    :${NC} Autonome (le forge crée ses agents)"
+    echo -e "  ${GRAY}Windows :${NC}"
+    printf "    ${CYAN}%-4s %-20s %-50s${NC}\n" "#" "NOM" "ROLE"
+    echo -e "    ${GRAY}─────────────────────────────────────────────────${NC}"
+    printf "    %-4s %-20s %-50s\n" "1" "orchestrateur" "Team Lead (claude --dangerously-skip-permissions)"
+    printf "    %-4s %-20s %-50s\n" "2" "monitor" "Dashboard statuts agents"
+    echo ""
+    echo -e "  ${YELLOW}Les agents seront créés par le forge après analyse de l'US.${NC}"
+    echo -e "  ${GRAY}Le forge utilisera : bash scripts/forge-add-agents.sh <agent1> <agent2> ...${NC}"
+    echo ""
+    echo -e "  ${GRAY}Commandes :${NC}"
+    echo "    tmux attach -t ${SESSION_NAME}          Rejoindre la session"
+    echo "    # puis dans l'orchestrateur : /forge <US-numero>"
     echo ""
 }
 
@@ -180,6 +233,9 @@ create_session() {
 # --- Main ---
 
 case "${1:-}" in
+    --init)
+        init_session
+        ;;
     --kill)
         kill_session
         ;;

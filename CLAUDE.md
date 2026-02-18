@@ -73,13 +73,17 @@ bash scripts/search-skills.sh --stack           # Chercher des skills communauta
 bash scripts/install-skill.sh <owner/repo>      # Installer un skill depuis GitHub
 
 # === Multi-Agent tmux (Forge) ===
-bash scripts/forge-panes.sh --agents <a1> <a2>  # Lancer une session multi-agents tmux
-bash scripts/forge-panes.sh --list              # Voir les agents actifs
-bash scripts/forge-panes.sh --kill              # Fermer la session forge
-bash scripts/agent-status.sh                    # Dashboard des agents
-bash scripts/dispatch.sh <agent> "prompt"       # Envoyer une tâche à un agent
-bash scripts/collect.sh <agent>                 # Lire le résultat d'un agent
-bash scripts/collect.sh <agent> --wait          # Attendre et lire le résultat
+bash scripts/forge-panes.sh --init             # Lancer l'orchestrateur seul (mode autonome — recommandé)
+bash scripts/forge-panes.sh --agents <a1> <a2> # Lancer avec agents prédéfinis (mode manuel)
+bash scripts/forge-panes.sh --list             # Voir les agents actifs
+bash scripts/forge-panes.sh --kill             # Fermer la session forge
+bash scripts/forge-add-agents.sh <a1> <a2>     # Ajouter des agents dynamiquement (appelé par le forge)
+bash scripts/forge-add-agents.sh --remove <a>  # Retirer un agent de la session
+bash scripts/forge-add-agents.sh --list        # Voir les windows tmux actives
+bash scripts/agent-status.sh                   # Dashboard des agents
+bash scripts/dispatch.sh <agent> "prompt"      # Envoyer une tâche à un agent
+bash scripts/collect.sh <agent>                # Lire le résultat d'un agent
+bash scripts/collect.sh <agent> --wait         # Attendre et lire le résultat
 
 # === GitHub ===
 gh issue list                         # Voir les issues
