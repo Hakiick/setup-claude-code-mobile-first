@@ -79,6 +79,7 @@ bash scripts/forge-panes.sh --list             # Voir les agents actifs
 bash scripts/forge-panes.sh --kill             # Fermer la session forge
 bash scripts/forge-add-agents.sh <a1> <a2>     # Ajouter des agents dynamiquement (appelé par le forge)
 bash scripts/forge-add-agents.sh --remove <a>  # Retirer un agent de la session
+bash scripts/forge-add-agents.sh --cleanup     # Retirer TOUS les agents (fin d'US)
 bash scripts/forge-add-agents.sh --list        # Voir les windows tmux actives
 bash scripts/agent-status.sh                   # Dashboard des agents
 bash scripts/dispatch.sh <agent> "prompt"      # Envoyer une tâche à un agent
