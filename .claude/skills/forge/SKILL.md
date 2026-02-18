@@ -99,9 +99,13 @@ le forge peut en ajouter à tout moment :
 bash scripts/forge-add-agents.sh pwa-dev
 ```
 
-**En fin de pipeline**, le forge peut retirer les agents terminés :
+**En fin de pipeline**, le forge retire les agents terminés :
 ```bash
+# Retirer un agent spécifique (pendant le pipeline)
 bash scripts/forge-add-agents.sh --remove architect
+
+# Retirer TOUS les agents d'un coup (en fin d'US — recommandé)
+bash scripts/forge-add-agents.sh --cleanup
 ```
 
 ### 1.3 Décomposer en sous-tâches
@@ -423,6 +427,10 @@ Affiche un résumé complet :
 ### Nettoyage
 
 ```bash
+# 1. Cleanup des agents tmux (retire toutes les windows sauf orchestrateur + monitor)
+bash scripts/forge-add-agents.sh --cleanup
+
+# 2. Retour sur main
 git checkout main
 git pull --rebase origin main
 ```

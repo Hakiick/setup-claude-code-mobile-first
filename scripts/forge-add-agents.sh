@@ -8,11 +8,13 @@ set -euo pipefail
 # Usage:
 #   bash scripts/forge-add-agents.sh <agent1> <agent2> ...
 #   bash scripts/forge-add-agents.sh --remove <agent>
+#   bash scripts/forge-add-agents.sh --cleanup
 #   bash scripts/forge-add-agents.sh --list
 #
 # Exemples:
 #   bash scripts/forge-add-agents.sh mobile-dev responsive-tester stabilizer
 #   bash scripts/forge-add-agents.sh --remove responsive-tester
+#   bash scripts/forge-add-agents.sh --cleanup    # Retire tous les agents (garde orchestrateur + monitor)
 # ============================================
 
 SESSION_NAME="forge"
@@ -39,6 +41,7 @@ show_usage() {
     echo "Usage:"
     echo "  bash scripts/forge-add-agents.sh <agent1> <agent2> ...   Ajouter des agents"
     echo "  bash scripts/forge-add-agents.sh --remove <agent>        Retirer un agent"
+    echo "  bash scripts/forge-add-agents.sh --cleanup               Retirer TOUS les agents"
     echo "  bash scripts/forge-add-agents.sh --list                  Voir les agents actifs"
     echo ""
     echo "Pré-requis: session forge active (bash scripts/forge-panes.sh --init)"
@@ -111,6 +114,42 @@ remove_agent() {
     echo -e "${GREEN}[forge]${NC} Agent '${agent}' retiré."
 }
 
+cleanup_agents() {
+    check_session
+
+    local removed=0
+    local system_windows="orchestrateur monitor"
+
+    # Lister toutes les windows et supprimer celles qui ne sont pas système
+    tmux list-windows -t "${SESSION_NAME}" -F '#{window_name}' 2>/dev/null | while read -r name; do
+        # Ignorer les windows système
+        case " ${system_windows} " in
+            *" ${name} "*) continue ;;
+        esac
+
+        # Mettre le statut en offline et fermer la window
+        if [ -f "${FORGE_DIR}/status/${name}" ]; then
+            echo "offline" > "${FORGE_DIR}/status/${name}"
+        fi
+        tmux kill-window -t "${SESSION_NAME}:${name}" 2>/dev/null
+        echo -e "${GREEN}[forge]${NC} Agent '${name}' retiré."
+        removed=$((removed + 1))
+    done
+
+    # Compter les agents retirés (la boucle while est dans un subshell à cause du pipe)
+    local total
+    total=$(tmux list-windows -t "${SESSION_NAME}" -F '#{window_name}' 2>/dev/null | grep -cvE '^(orchestrateur|monitor)$' || echo "0")
+
+    if [ "${total}" -eq 0 ]; then
+        echo -e "${GREEN}[forge]${NC} Cleanup terminé — tous les agents ont été retirés."
+    else
+        echo -e "${YELLOW}[forge]${NC} ${total} window(s) restante(s) après cleanup."
+    fi
+
+    # Revenir à la window orchestrateur
+    tmux select-window -t "${SESSION_NAME}:orchestrateur" 2>/dev/null || true
+}
+
 list_agents() {
     check_session
 
@@ -154,6 +193,9 @@ case "${1:-}" in
     --remove)
         shift
         remove_agent "${1:?Usage: --remove <agent-name>}"
+        ;;
+    --cleanup)
+        cleanup_agents
         ;;
     --list)
         list_agents
