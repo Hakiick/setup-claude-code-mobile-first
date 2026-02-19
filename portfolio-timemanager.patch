@@ -32,10 +32,10 @@ index 71da74f..5564d9f 100644
  
  function filterProjects(categories: ProjectCategory[] | null) {
 diff --git a/src/components/ui/ClassifiedCard.tsx b/src/components/ui/ClassifiedCard.tsx
-index f16ca4b..b497dc0 100644
+index f16ca4b..b4e8827 100644
 --- a/src/components/ui/ClassifiedCard.tsx
 +++ b/src/components/ui/ClassifiedCard.tsx
-@@ -1,9 +1,133 @@
+@@ -1,9 +1,135 @@
 -import { useState, useEffect, useRef, useCallback } from "react";
 +import { useState, useEffect, useRef, useCallback, useMemo } from "react";
  import type { Project } from "../../data/projects";
@@ -88,7 +88,9 @@ index f16ca4b..b497dc0 100644
 +          alt={`Screenshot ${activeIndex + 1}`}
 +          loading="lazy"
 +          onError={() => {
-+            const origIndex = screenshots.indexOf(validScreenshots[activeIndex]);
++            const origIndex = screenshots.indexOf(
++              validScreenshots[activeIndex],
++            );
 +            handleImageError(origIndex);
 +          }}
 +          className="h-auto w-full object-cover"
@@ -170,7 +172,7 @@ index f16ca4b..b497dc0 100644
  export interface ClassifiedCardProps {
    project: Project;
    index: number;
-@@ -235,11 +359,16 @@ export function ClassifiedCard({
+@@ -235,11 +361,16 @@ export function ClassifiedCard({
            <div
              className="transition-all duration-300 ease-in-out"
              style={{
