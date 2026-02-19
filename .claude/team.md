@@ -12,7 +12,7 @@
 
 ### `stabilizer`
 **Rôle** : Quality gate — build, tests, lint, type-check
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Toujours présent** : oui (toujours en dernier dans le pipeline)
 **Responsabilités** :
 - Lancer les checks de stabilité (`bash scripts/stability-check.sh`)
@@ -21,7 +21,7 @@
 
 ### `reviewer`
 **Rôle** : Revue de code qualité + sécurité + accessibilité
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Quand l'utiliser** : US de priorité haute ou touchant un domaine critique
 **Responsabilités** :
 - Vérifier le respect des règles du projet (`.claude/rules/`)
@@ -35,7 +35,7 @@
 
 ### `mobile-dev`
 **Rôle** : Développeur mobile-first — responsive, touch, viewport, performance
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Skill** : `/mobile-dev`
 **Domaine** : Composants responsive, interactions tactiles, viewport management, progressive enhancement
 **Responsabilités** :
@@ -47,7 +47,7 @@
 
 ### `responsive-tester`
 **Rôle** : Testeur responsive — breakpoints, viewports, touch, accessibilité
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Skill** : `/responsive-tester`
 **Domaine** : Tests multi-viewports, touch events, accessibilité mobile, Lighthouse audit
 **Responsabilités** :
@@ -59,7 +59,7 @@
 
 ### `pwa-dev`
 **Rôle** : Spécialiste PWA — service worker, manifest, offline, installabilité
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Skill** : `/pwa-dev`
 **Domaine** : Service workers, stratégies de cache, web app manifest, offline-first UX
 **Responsabilités** :
@@ -74,15 +74,15 @@
 ## Agents fallback (génériques)
 
 ### `architect`
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Rôle** : Planification architecture (read-only)
 
 ### `developer`
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Rôle** : Développeur générique
 
 ### `tester`
-**Modèle** : **Opus 4.6**
+**Modèle** : **Sonnet 4.6**
 **Rôle** : Tests unitaires et d'intégration
 
 ---
@@ -100,11 +100,11 @@
 | Catégorie | Agents | Modèle |
 |-----------|--------|--------|
 | Orchestration | forge, init-project, next-feature | **Opus 4.6** |
-| Planification | architect | **Opus 4.6** |
-| Développement | mobile-dev, pwa-dev, developer | **Opus 4.6** |
-| Revue | reviewer | **Opus 4.6** |
-| Test | tester, responsive-tester | **Opus 4.6** |
-| Validation | stabilizer | **Opus 4.6** |
+| Planification | architect | **Sonnet 4.6** |
+| Développement | mobile-dev, pwa-dev, developer | **Sonnet 4.6** |
+| Revue | reviewer | **Sonnet 4.6** |
+| Test | tester, responsive-tester | **Sonnet 4.6** |
+| Validation | stabilizer | **Sonnet 4.6** |
 
 ## Types d'agents
 

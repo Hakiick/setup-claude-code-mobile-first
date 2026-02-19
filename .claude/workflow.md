@@ -12,7 +12,7 @@
               │  4. Move → In Prog        │
               │  5. Implement             │
               │  6. Stabilize             │
-              │  7. Rebase + Push + PR    │
+              │  7. Rebase + Merge main   │
               │  8. Move → Done           │
               │  9. Clean context         │
               └───────────┬───────────────┘
@@ -25,11 +25,11 @@
 | Phase | Agent | Modèle |
 |-------|-------|--------|
 | Orchestration | forge | **Opus 4.6** |
-| Planification | architect | **Opus 4.6** |
-| Développement | mobile-dev, pwa-dev, developer | **Opus 4.6** |
-| Tests | tester, responsive-tester | **Sonnet 4.5** |
-| Revue | reviewer | **Opus 4.6** |
-| Stabilisation | stabilizer | **Sonnet 4.5** |
+| Planification | architect | **Sonnet 4.6** |
+| Développement | mobile-dev, pwa-dev, developer | **Sonnet 4.6** |
+| Tests | tester, responsive-tester | **Sonnet 4.6** |
+| Revue | reviewer | **Sonnet 4.6** |
+| Stabilisation | stabilizer | **Sonnet 4.6** |
 
 ## Stratégie Git : Rebase Only
 
@@ -78,10 +78,10 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 
 Chaque agent intervient dans l'ordre :
 
-**architect (si assigné) → model: opus :**
+**architect (si assigné) → model: sonnet :**
 - Analyse la US, propose un plan d'implémentation
 
-**developer / mobile-dev / pwa-dev → model: opus :**
+**developer / mobile-dev / pwa-dev → model: sonnet :**
 - Implémente selon le plan
 - Commits atomiques
 - Rebase régulier sur main
@@ -90,26 +90,29 @@ Chaque agent intervient dans l'ordre :
 - Écrit les tests après l'implémentation
 - Teste sur multiple viewports
 
-**reviewer (si assigné) → model: opus :**
+**reviewer (si assigné) → model: sonnet :**
 - Revue du code produit
 - Le developer corrige si nécessaire
 
 ### 6. Stabilize
 
-**stabilizer (toujours en dernier) → model: sonnet :**
+**stabilizer (toujours en dernier) → model: sonnet 4.6 :**
 
 ```bash
 bash scripts/stability-check.sh
 ```
 
-### 7. Rebase + Push + PR
+### 7. Rebase + Merge main
 
 ```bash
 git fetch origin main
 git rebase origin/main
 bash scripts/stability-check.sh
-git push --force-with-lease origin type/scope/description-courte
-gh pr create --title "type(scope): description" --base main
+git checkout main
+git merge type/scope/description-courte
+git push origin main
+git branch -d type/scope/description-courte
+git push origin --delete type/scope/description-courte
 ```
 
 ### 8. Move → Done
@@ -150,9 +153,8 @@ Quand une US dépend d'une autre, l'agent DOIT :
 
 1. **Rebase sur main** — la branche doit être à jour
 2. **Stability check** — `bash scripts/stability-check.sh` doit passer
-3. **Pas de conflits** — PR mergeable
-4. **CI verte** — si configurée
-5. **Review approuvée** — si reviewer assigné
+3. **Pas de conflits** — branche rebasée proprement
+4. **Review validée** — si reviewer assigné
 
 ## Gestion des erreurs
 

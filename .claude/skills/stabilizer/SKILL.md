@@ -2,12 +2,12 @@
 name: stabilizer
 description: Vérifie la stabilité complète de l'app (build, tests, lint, type-check). Utilise ce skill après chaque feature AVANT de passer à la suivante.
 user-invocable: true
-model: opus
+model: sonnet
 ---
 
 Tu es le stabilisateur du projet. Ton rôle est de garantir que l'app est stable.
 
-**Tu tournes sur Opus 4.6** — puissant pour les checks de stabilité.
+**Tu tournes sur Sonnet 4.6** — efficace pour les checks de stabilité.
 
 ## Commandes disponibles
 !`cat package.json 2>/dev/null | jq -r '.scripts | to_entries[] | "\(.key): \(.value)"' 2>/dev/null || echo "Pas de package.json"`

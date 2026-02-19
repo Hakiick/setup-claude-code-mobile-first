@@ -449,7 +449,7 @@ capture();
 
 **Quand capturer** :
 - Après chaque US visuelle terminée et stabilisée
-- AVANT le rebase/push (comme ça les screenshots sont dans la PR)
+- AVANT le rebase/merge (comme ça les screenshots sont dans la branche)
 - Le dev server doit tourner (`npm run dev` en background)
 
 ```bash
@@ -502,29 +502,13 @@ cd /home/user/T-POO-700-STG_1/frontend && npm run build
 git push --force-with-lease origin feat/frontend/<description>
 ```
 
-#### 9. Créer la PR
+#### 9. Merger dans la branche base
 ```bash
-gh pr create \
-  --base rebuild/mobile-first \
-  --title "feat(frontend): <description courte de la US>" \
-  --body "## Summary
-- <1-3 bullet points>
-
-## Test plan
-- [ ] Build passe sans erreur
-- [ ] Type-check passe
-- [ ] Responsive testé sur 375px, 768px, 1280px
-- [ ] Touch targets ≥ 44x44px
-- [ ] Animations fluides 60fps
-
-## Stability
-✓ npm run build — OK
-✓ npx tsc --noEmit — OK"
-```
-
-#### 10. Merger la PR
-```bash
-gh pr merge --squash --delete-branch
+git checkout rebuild/mobile-first
+git merge feat/frontend/<description>
+git push origin rebuild/mobile-first
+git branch -d feat/frontend/<description>
+git push origin --delete feat/frontend/<description>
 ```
 
 #### 11. Mettre à jour board.md

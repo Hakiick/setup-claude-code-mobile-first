@@ -13,7 +13,7 @@
 
 - **YOU MUST** utiliser `rebase` au lieu de `merge` — historique linéaire obligatoire
 - **YOU MUST NOT** utiliser `git merge` pour intégrer des changements de `main` dans une branche feature
-- **YOU MUST** rebase ta branche feature sur `main` avant de créer/mettre à jour la PR
+- **YOU MUST** rebase ta branche feature sur `main` avant de merger
 
 ## Workflow rebase pour chaque feature
 
@@ -58,33 +58,22 @@ git rebase --abort
 ```
 main ─────────────────────────────────────────────
   │                                        ↑
-  └── feat/scope/feature ──── rebase ──── PR ── squash merge ── delete branch
+  └── feat/scope/feature ──── rebase ──── merge ── delete branch
 ```
 
 1. **Créer** la branche depuis `main` à jour
 2. **Développer** avec des commits atomiques
-3. **Rebase** sur `main` avant le push
+3. **Rebase** sur `main` avant le merge
 4. **Push** la branche sur le remote (`git push -u origin <branch>`)
-5. **Créer la PR** via `gh pr create`
-6. **Vérifier** que la CI passe sur la PR
-7. **Squash merge** via GitHub (PR merge) — pour un historique main propre
-8. **Supprimer** la branche après merge
-
-# Règles de Pull Requests
-
-- **YOU MUST** nommer les PR avec le format : `type(scope): description courte`
-  - Même format que les commits
-- **YOU MUST** créer la PR sur GitHub avec `gh pr create` après le push
-- **YOU MUST** vérifier que la CI passe avant de considérer la PR comme prête
-- Le body de la PR doit contenir :
-  - `## Summary` — 1 à 3 bullet points décrivant les changements
-  - `## Test plan` — checklist de vérification
-  - `## Stability` — résultat du stability check
+5. **Stability check** — `bash scripts/stability-check.sh` doit passer
+6. **Merge** dans main : `git checkout main && git merge <branch>`
+7. **Push** main : `git push origin main`
+8. **Supprimer** la branche après merge (local + remote)
 
 # Protection contre les merges cassés
 
-- **YOU MUST** lancer `bash scripts/stability-check.sh` AVANT de push
-- **YOU MUST** vérifier que la PR n'a pas de conflits avec `main`
+- **YOU MUST** lancer `bash scripts/stability-check.sh` AVANT de merger
+- **YOU MUST** vérifier que la branche est rebasée sur `main` (pas de conflits)
 - **YOU MUST** re-lancer les tests après chaque rebase
-- Si le stability check échoue, la PR ne doit PAS être mergée
-- Après le merge de la PR, vérifier que `main` est toujours stable
+- Si le stability check échoue, la branche ne doit PAS être mergée dans main
+- Après le merge, vérifier que `main` est toujours stable

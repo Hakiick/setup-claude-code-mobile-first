@@ -4,13 +4,13 @@ description: Planifie et design l'architecture technique d'une feature. Utilise 
 user-invocable: true
 context: fork
 agent: Plan
-model: opus
+model: sonnet
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
 
 Tu es l'architecte du projet. Ton rôle est de planifier AVANT de coder.
 
-**Tu tournes sur Opus 4.6** pour des analyses architecturales de qualité maximale.
+**Tu tournes sur Sonnet 4.6** pour des analyses architecturales de qualité maximale.
 
 ## Contexte projet
 !`head -30 project.md 2>/dev/null || echo "Pas de project.md"`
