@@ -1,5 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(npm run build)",
@@ -13,13 +16,13 @@
       "Bash(npx prettier *)",
       "Bash(gh issue *)",
       "Bash(gh label *)",
-      "Bash(gh pr *)",
       "Bash(git checkout *)",
       "Bash(git branch *)",
       "Bash(git fetch *)",
       "Bash(git pull *)",
       "Bash(git rebase *)",
       "Bash(git push *)",
+      "Bash(git merge *)",
       "Bash(git status *)",
       "Bash(git log *)",
       "Bash(git diff *)",
@@ -51,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Setup Claude Code Mobile-First chargé. Skills disponibles : /forge (opus), /init-project (opus), /next-feature (opus), /architect (opus), /mobile-dev (opus), /pwa-dev (opus), /developer (opus), /responsive-tester (sonnet), /tester (sonnet), /reviewer (opus), /stabilizer (sonnet)'",
+            "command": "echo 'Setup Claude Code Mobile-First chargé. Skills disponibles : /forge (opus), /init-project (opus), /next-feature (opus), /architect (sonnet), /mobile-dev (sonnet), /pwa-dev (sonnet), /developer (sonnet), /responsive-tester (sonnet), /tester (sonnet), /reviewer (sonnet), /stabilizer (sonnet)'",
             "timeout": 5
           }
         ]

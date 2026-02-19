@@ -7,7 +7,7 @@ model: opus
 
 Tu initialises le projet. Le setup est **entièrement automatique** — tu analyses le projet et tu configures tout.
 
-**IMPORTANT : Tu tournes sur Opus 4.6.** Les agents que tu génères doivent spécifier `model: opus` dans leur SKILL.md. **Tous les agents tournent sur Opus 4.6.**
+**IMPORTANT : Tu tournes sur Opus 4.6.** Les agents que tu génères doivent spécifier `model: sonnet` dans leur SKILL.md. **Tous les agents tournent sur Sonnet 4.6.**
 
 ## Contexte du projet
 !`cat project.md 2>/dev/null || echo "ERREUR: project.md manquant. Crée-le d'abord."`
@@ -152,11 +152,11 @@ Analyse la stack et les US pour créer les bons agents.
 
 | Stack / Besoin | Agent à générer | Modèle recommandé |
 |----------------|-----------------|-------------------|
-| Framework frontend (Next.js, React...) | `frontend-dev` | opus |
-| Framework backend (Express, Fastify...) | `api-dev` | opus |
-| Base de données + ORM | `db-architect` | opus |
+| Framework frontend (Next.js, React...) | `frontend-dev` | sonnet |
+| Framework backend (Express, Fastify...) | `api-dev` | sonnet |
+| Base de données + ORM | `db-architect` | sonnet |
 | Tests E2E (Playwright, Cypress) | `e2e-tester` | sonnet |
-| UI complexe | `ui-dev` | opus |
+| UI complexe | `ui-dev` | sonnet |
 | DevOps/CI | `devops` | sonnet |
 
 **Règle** : ne génère PAS d'agents inutiles.

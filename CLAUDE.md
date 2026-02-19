@@ -12,15 +12,13 @@ Contexte du projet : @project.md
 - **YOU MUST** utiliser l'équipe agentique assignée à chaque US
 - **YOU MUST** faire des commits au format `type(scope): description` (ex: `feat(frontend): add responsive nav`)
 - **YOU MUST** nommer les branches au format `type/scope/description-courte` (ex: `feat/frontend/responsive-nav`)
-- **YOU MUST** nommer les PR au format `type(scope): description` (même format que les commits)
 - **YOU MUST** utiliser `rebase` — JAMAIS `merge` pour intégrer les changements de `main`
 - **YOU MUST** créer la branche sur GitHub dès le début (`git push -u origin <branch>`)
-- **YOU MUST** créer une PR via `gh pr create` après stabilisation
 - **YOU MUST** lancer `bash scripts/stability-check.sh` AVANT tout push
 - **YOU MUST** re-lancer le stability check APRÈS chaque rebase
 - **YOU MUST** vérifier l'éligibilité d'une US avant de la démarrer (`bash scripts/check-us-eligibility.sh <numero>`)
 - **YOU MUST NOT** démarrer une US dont les dépendances ne sont pas satisfaites
-- **YOU MUST NOT** merger une PR si le stability check échoue
+- **YOU MUST NOT** merger dans main si le stability check échoue
 - **YOU MUST NOT** utiliser `git push --force` — utilise `--force-with-lease` uniquement
 
 ## Skills disponibles
@@ -88,15 +86,13 @@ bash scripts/collect.sh <agent> --wait         # Attendre et lire le résultat
 
 # === GitHub ===
 gh issue list                         # Voir les issues
-gh pr list                            # Voir les PRs ouvertes
-gh pr view <numero>                   # Détail d'une PR
 ```
 
 ## Workflow
 
 1. `/init-project` — Analyse le projet, brainstorm, génère agents + règles, crée les issues
 2. `/forge` — Pour chaque US (par priorité) :
-   analyse, décompose, délègue aux agents, feedback loops, stabilize, PR, done, clean context
+   analyse, décompose, délègue aux agents, feedback loops, stabilize, merge main, done, clean context
 3. Répète 2 jusqu'à ce que toutes les US soient done
 
 > `/next-feature` reste disponible comme alternative linéaire pour les features simples.
@@ -215,7 +211,7 @@ Le prompt DOIT inclure :
 - Le contenu complet de `.forge/tasks/<agent-name>.md`
 - L'identité : "Tu es l'agent `<agent-name>`"
 - Les règles du projet
-- **Le modèle** : `model: "opus"` pour **tous** les agents
+- **Le modèle** : `model: "sonnet"` pour **tous** les agents
 
 **Étape 3 — Écrire le résultat et mettre à jour le statut** :
 
@@ -255,16 +251,17 @@ Au-delà → **stop et demande à l'utilisateur**.
 | `reviewer` | Rapport critiques vs suggestions | → Critiques = renvoyer au dev |
 | `stabilizer` | `bash scripts/stability-check.sh` | → Simple = stabilizer corrige ; Complexe = renvoyer au dev |
 
-### Phase 4 — Rebase final + PR
+### Phase 4 — Rebase final + Merge dans main
 
 ```bash
 git fetch origin main && git rebase origin/main
 bash scripts/stability-check.sh      # Obligatoire après rebase
-git push --force-with-lease origin type/scope/description-courte
-gh pr create --title "type(scope): description" --base main --body "..."
+git checkout main
+git merge type/scope/description-courte
+git push origin main
+git branch -d type/scope/description-courte
+git push origin --delete type/scope/description-courte
 ```
-
-Le body de la PR DOIT contenir : `## Summary`, `## Test plan`, `## Stability`, `## Forge Report`.
 
 ### Phase 5 — Clôture
 
@@ -299,13 +296,13 @@ Utilise `/compact` pour nettoyer le contexte entre chaque US.
 | Catégorie | Agents | Modèle |
 |-----------|--------|--------|
 | Orchestration | forge | **Opus 4.6** (obligatoire) |
-| Planification | architect | **Opus 4.6** |
-| Développement | mobile-dev, pwa-dev, developer, frontend-dev, backend-dev | **Opus 4.6** |
-| Revue | reviewer | **Opus 4.6** |
-| Test | tester, responsive-tester | **Opus 4.6** |
-| Validation | stabilizer | **Opus 4.6** |
+| Planification | architect | **Sonnet 4.6** |
+| Développement | mobile-dev, pwa-dev, developer, frontend-dev, backend-dev | **Sonnet 4.6** |
+| Revue | reviewer | **Sonnet 4.6** |
+| Test | tester, responsive-tester | **Sonnet 4.6** |
+| Validation | stabilizer | **Sonnet 4.6** |
 
-**IMPORTANT : Tous les agents Task() DOIVENT utiliser `model: "opus"`. Jamais de sonnet ni haiku.**
+**IMPORTANT : Tous les agents Task() DOIVENT utiliser `model: "sonnet"`. L'orchestrateur (forge) reste sur Opus 4.6.**
 
 ---
 
@@ -314,12 +311,12 @@ Utilise `/compact` pour nettoyer le contexte entre chaque US.
 ```
 main ─────────────────────────────────────────────
   │                                        ↑
-  └── feat/scope/feature ──── rebase ──── PR ── squash merge ── delete branch
+  └── feat/scope/feature ──── rebase ──── merge ── delete branch
 ```
 
 - **Rebase only** : `git fetch origin main && git rebase origin/main`
-- **Push** : `git push --force-with-lease origin <branch>`
-- **PR** : `gh pr create --base main`
+- **Push feature** : `git push --force-with-lease origin <branch>`
+- **Merge** : `git checkout main && git merge <branch>`
 - **Après merge** : vérifier que main est stable
 
 ## Mobile-First Principles

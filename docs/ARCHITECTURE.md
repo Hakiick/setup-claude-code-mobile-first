@@ -19,7 +19,7 @@ The multi-agent workspace is a tmux-based system where each tmux tab runs an ind
 │                                                   │
 │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐ │
 │  │  DevOps  │ │ Tester   │ │    Manager       │ │
-│  │ (sonnet) │ │ (haiku)  │ │    (opus)        │ │
+│  │ (sonnet) │ │ (sonnet)  │ │    (opus)        │ │
 │  └──────────┘ └──────────┘ └──────────────────┘ │
 │                                                   │
 │  ┌──────────┐ ┌──────────┐                       │

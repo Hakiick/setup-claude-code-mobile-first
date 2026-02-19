@@ -7,7 +7,7 @@ model: opus
 
 Tu es le **Team Lead** du projet. Tu orchestre une équipe d'agents pour livrer une feature de bout en bout.
 
-**IMPORTANT : Tu tournes obligatoirement sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour **tous** les agents. **Jamais de sonnet ni haiku.**
+**IMPORTANT : Tu tournes obligatoirement sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "sonnet"` pour **tous** les agents.
 
 ## État actuel
 !`gh issue list --label "in-progress" --json number,title --jq '.[] | "[#\(.number)] \(.title) — EN COURS"' 2>/dev/null || echo "Aucune US en cours"`
@@ -72,7 +72,7 @@ Ces agents ont été auto-générés par `/init-project` et sont spécialisés p
 - `stabilizer` → toujours en dernier
 
 **Modèles pour les subagents :**
-- **Tous les agents** → **model: "opus"**
+- **Tous les agents** → **model: "sonnet"**
 
 #### Créer les agents dans la session tmux (OBLIGATOIRE)
 
@@ -244,7 +244,7 @@ Le prompt du Task() doit inclure :
 - Le contenu complet de `.forge/tasks/<agent-name>.md`
 - L'identité de l'agent : "Tu es l'agent '<agent-name>'"
 - Les règles du projet
-- **Le modèle** : `model: "opus"` pour tous les agents
+- **Le modèle** : `model: "sonnet"` pour tous les agents
 
 **Étape 3 — Écrire le résultat et mettre à jour le statut** :
 
@@ -362,7 +362,7 @@ bash scripts/stability-check.sh
 
 ---
 
-## Phase 4 — Rebase final + PR
+## Phase 4 — Rebase final + Merge main
 
 ```bash
 # 1. Rebase final
@@ -372,39 +372,14 @@ git rebase origin/main
 # 2. Re-vérifier la stabilité (obligatoire après rebase)
 bash scripts/stability-check.sh
 
-# 3. Push
-git push --force-with-lease origin type/scope/description-courte
+# 3. Merge dans main
+git checkout main
+git merge type/scope/description-courte
+git push origin main
 
-# 4. Créer la PR
-gh pr create \
-  --title "type(scope): description courte" \
-  --body "## Summary
-- Point 1
-- Point 2
-
-## Test plan
-- [ ] Tests unitaires passent
-- [ ] Tests responsive passent
-- [ ] Stability check passe
-- [ ] Lighthouse mobile > 90
-
-## Stability
-\`\`\`
-Build:      ✓
-Tests:      ✓
-Lint:       ✓
-Type check: ✓
-→ STABLE
-\`\`\`
-
-## Forge Report
-- Agents utilisés : [liste]
-- Modèles : [opus/sonnet par agent]
-- Feedback loops : [nombre et détails]
-- Itérations de stabilisation : [nombre]
-
-Closes #<numero>" \
-  --base main
+# 4. Supprimer la branche
+git branch -d type/scope/description-courte
+git push origin --delete type/scope/description-courte
 ```
 
 ---
@@ -426,7 +401,7 @@ Affiche un résumé complet :
 ═══════════════════════════════════════════════
 
   Branche  : type/scope/description
-  PR       : #numero
+  Merge    : type/scope/description
   Agents   : architect → mobile-dev → responsive-tester → reviewer → stabilizer
 
   Pipeline :

@@ -9,7 +9,7 @@
 - **15 specialized agents** (skills) orchestrated by Forge (Team Lead)
 - **Web IDE** : code-server (VS Code in the browser)
 - **Orchestration multi-agents** : forge (Team Lead), feedback loops, monitoring temps réel
-- **Workflow structuré** : US -> branch -> implement -> stabilize -> PR -> done
+- **Workflow structuré** : US -> branch -> implement -> stabilize -> merge main -> done
 - **Azure (optional)** : Terraform to provision the VM automatically
 
 ## Quick start
@@ -59,7 +59,7 @@ Puis dans Claude Code : `/init-project`
 
 ## Agents (Skills)
 
-Tous les agents tournent sur **Opus 4.6**.
+L'orchestrateur (forge) tourne sur **Opus 4.6**. Tous les autres agents tournent sur **Sonnet 4.6**.
 
 ### Core
 
@@ -234,7 +234,7 @@ setup-claude-code-mobile-first/
 ```
 main ─────────────────────────────────────────────
   │                                        ↑
-  └── feat/scope/feature ──── rebase ──── PR ── squash merge
+  └── feat/scope/feature ──── rebase ──── merge ── delete branch
 ```
 
 - **Rebase only** : jamais de merge

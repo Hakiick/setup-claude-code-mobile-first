@@ -2,7 +2,7 @@
 
 ## Overview
 
-The workspace provides **15 specialized agents** (skills), all running on **Opus 4.6**. Agents are orchestrated by the **Forge** (Team Lead) which dynamically creates tmux windows and spawns subagents via `Task()`.
+The workspace provides **15 specialized agents** (skills). L'orchestrateur (forge) tourne sur **Opus 4.6**, tous les autres agents sur **Sonnet 4.6**. Agents are orchestrated by the **Forge** (Team Lead) which dynamically creates tmux windows and spawns subagents via `Task()`.
 
 ## How it works
 
@@ -62,7 +62,7 @@ Create a new skill in `.claude/skills/<agent-name>/SKILL.md`:
 name: my-agent
 description: "What this agent does"
 user-invocable: true
-model: opus
+model: sonnet
 ---
 
 Tu es l'agent [nom]. Ton rôle est [description].

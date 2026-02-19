@@ -1,13 +1,13 @@
 ---
 name: next-feature
-description: Prends la prochaine US et exécute le workflow complet (branch → assign team → implement → stabilize → PR → done → clean context). Utilise ce skill pour dépiler les features une par une.
+description: Prends la prochaine US et exécute le workflow complet (branch → assign team → implement → stabilize → merge main → done → clean context). Utilise ce skill pour dépiler les features une par une.
 user-invocable: true
 model: opus
 ---
 
 Tu dépiles la prochaine feature. Suis le workflow séquentiel.
 
-**IMPORTANT : Tu tournes sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "opus"` pour **tous** les agents. **Jamais de sonnet ni haiku.**
+**IMPORTANT : Tu tournes sur Opus 4.6.** Quand tu lances des subagents via Task(), utilise `model: "sonnet"` pour **tous** les agents.
 
 ## État actuel
 !`gh issue list --label "in-progress" --json number,title --jq '.[] | "[#\(.number)] \(.title) — EN COURS"' 2>/dev/null || echo "Aucune US en cours"`
@@ -65,52 +65,36 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 ### 5. Exécuter le pipeline d'agents
 
 **Si architect assigné :**
-- Analyse la US, propose un plan d'implémentation (model: opus)
+- Analyse la US, propose un plan d'implémentation (model: sonnet)
 
 **developer / mobile-dev / pwa-dev (toujours) :**
-- Implémente selon le plan (model: opus)
+- Implémente selon le plan (model: sonnet)
 - Commits atomiques
 - **Rebase régulier** sur main
 
 **Si tester / responsive-tester assigné :**
-- Écris et lance les tests (model: opus)
+- Écris et lance les tests (model: sonnet)
 - Corrige si des tests échouent
 
 **Si reviewer assigné :**
-- Revue de code (model: opus)
+- Revue de code (model: sonnet)
 - Corrections si nécessaire
 
 **stabilizer (toujours) :**
-- Build + Tests + Lint + Type check (model: opus)
+- Build + Tests + Lint + Type check (model: sonnet)
 - Corrige jusqu'à ce que tout passe
 
-### 6. Rebase final + Push + Créer la PR
+### 6. Rebase final + Merge main
 
 ```bash
 git fetch origin main
 git rebase origin/main
 bash scripts/stability-check.sh
-git push --force-with-lease origin type/scope/description-courte
-gh pr create \
-  --title "type(scope): description courte" \
-  --body "## Summary
-- Point 1
-- Point 2
-
-## Test plan
-- [ ] Tests passent
-- [ ] Responsive check OK
-- [ ] Stability check passe
-
-## Stability
-Build:      ✓
-Tests:      ✓
-Lint:       ✓
-Type check: ✓
-→ STABLE
-
-Closes #<numero>" \
-  --base main
+git checkout main
+git merge type/scope/description-courte
+git push origin main
+git branch -d type/scope/description-courte
+git push origin --delete type/scope/description-courte
 ```
 
 ### 7. Terminer la feature
@@ -123,7 +107,7 @@ gh issue close <numero>
 ```
 ## US-XX — [Titre] ✓
 - Branche : type/scope/description
-- PR : #numero
+- Merge : branche mergée dans main
 - Fichiers modifiés : [liste]
 - Tests ajoutés : [liste]
 - Stability : STABLE ✓

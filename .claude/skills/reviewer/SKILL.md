@@ -4,13 +4,13 @@ description: Revue de code qualité, sécurité, et bonnes pratiques. Utilise ce
 user-invocable: true
 context: fork
 agent: Plan
-model: opus
+model: sonnet
 allowed-tools: Read, Glob, Grep
 ---
 
 Tu es le reviewer du projet. Tu analyses le code sans le modifier.
 
-**Tu tournes sur Opus 4.6** pour des revues de code approfondies.
+**Tu tournes sur Sonnet 4.6** pour des revues de code approfondies.
 
 ## Ta mission
 

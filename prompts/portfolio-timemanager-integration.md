@@ -412,30 +412,14 @@ git commit -m "feat(projects): add TimeManager (T-POO-700-STG_1) with screenshot
 git push -u origin feat/projects/add-timemanager
 ```
 
-### 4.7 — Créer la PR
+### 4.7 — Merger dans main
 
 ```bash
-gh pr create \
-  --base main \
-  --title "feat(projects): add TimeManager with screenshot gallery" \
-  --body "## Summary
-- Add TimeManager (T-POO-700-STG_1) project to the portfolio
-- New ScreenshotGallery component with carousel navigation in classified cards
-- Screenshots captured from deployed app with Playwright
-- New 'Web' filter category for fullstack projects
-
-## Test plan
-- [ ] Build passes without errors
-- [ ] Astro check: 0 errors
-- [ ] Screenshots display correctly in expanded card
-- [ ] Gallery navigation works (arrows + dots)
-- [ ] Web filter shows TimeManager
-- [ ] FR/EN translations work
-
-## Stability
-- astro check: 0 errors
-- npm run build: Complete
-- prettier: All files OK"
+cd /home/claude/workspace/Portfolio_cyber_ia
+git checkout main
+git merge feat/projects/add-timemanager
+git push origin main
+git branch -d feat/projects/add-timemanager
 ```
 
 ---
@@ -449,7 +433,7 @@ kill $FRONTEND_PID 2>/dev/null
 cd /home/claude/workspace/T-POO-700-STG_1
 docker compose down 2>/dev/null
 
-echo "Done! PR créée sur Portfolio_cyber_ia."
+echo "Done! Branche mergée dans main sur Portfolio_cyber_ia."
 ```
 
 ---
@@ -465,7 +449,7 @@ echo "Done! PR créée sur Portfolio_cyber_ia."
 | Screenshots noirs/vides | Le frontend n'est pas prêt — augmenter le `waitForTimeout` |
 | Patch ne s'applique pas | Appliquer manuellement les changements (voir section 4.2) |
 | cwebp/sharp non dispo | Garder les PNG et adapter les chemins dans projects.ts |
-| gh CLI non dispo | Créer la PR manuellement sur GitHub |
+| gh CLI non dispo | Merger manuellement via git |
 | Port déjà occupé | `lsof -i :5173` / `lsof -i :4000`, kill le process |
 
 ## CRITÈRES DE SUCCÈS
@@ -475,4 +459,4 @@ echo "Done! PR créée sur Portfolio_cyber_ia."
 3. Le patch est appliqué au portfolio
 4. Les screenshots sont dans `public/images/projects/timemanager/`
 5. Le build du portfolio passe sans erreur
-6. La PR est créée sur GitHub
+6. La branche est mergée dans main
