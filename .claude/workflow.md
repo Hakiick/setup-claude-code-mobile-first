@@ -26,8 +26,10 @@
 |-------|-------|--------|
 | Orchestration | forge | **Opus 4.6** |
 | Planification | architect | **Sonnet 4.6** |
-| Développement | mobile-dev, pwa-dev, developer | **Sonnet 4.6** |
-| Tests | tester, responsive-tester | **Sonnet 4.6** |
+| Infrastructure | azure-infra, db-architect | **Sonnet 4.6** |
+| Containerisation | docker-dev | **Sonnet 4.6** |
+| CI/CD | cicd-dev | **Sonnet 4.6** |
+| Sécurité | security-auditor | **Sonnet 4.6** |
 | Revue | reviewer | **Sonnet 4.6** |
 | Stabilisation | stabilizer | **Sonnet 4.6** |
 
@@ -46,17 +48,10 @@
   3. Vérifie que toutes les dépendances sont satisfaites
   4. Prends la première US éligible par priorité (haute → moyenne → basse)
 
-**Règles de dépendances :**
-| Type | Condition pour démarrer |
-|------|------------------------|
-| `après:US-XX` | US-XX doit avoir le label `done` |
-| `partage:US-XX` | US-XX ne doit PAS être `in-progress` |
-| `enrichit:US-XX` | US-XX doit être `done` ou `in-progress` |
-
 ### 2. Assign team
 
 - Consulte `project.md` > Équipe agentique par feature
-- Charge les prompt patterns des agents depuis `team.md`
+- Charge les agents depuis `team.md`
 - L'ordre d'exécution des agents est important
 
 ### 3. Create branch
@@ -79,24 +74,30 @@ gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 Chaque agent intervient dans l'ordre :
 
 **architect (si assigné) → model: sonnet :**
-- Analyse la US, propose un plan d'implémentation
+- Analyse l'US, propose un plan d'infrastructure
 
-**developer / mobile-dev / pwa-dev → model: sonnet :**
-- Implémente selon le plan
+**azure-infra / db-architect → model: sonnet :**
+- Implémente les modules Terraform et la config Azure
 - Commits atomiques
 - Rebase régulier sur main
 
-**tester / responsive-tester → model: sonnet :**
-- Écrit les tests après l'implémentation
-- Teste sur multiple viewports
+**docker-dev → model: sonnet :**
+- Crée les Dockerfiles multi-stage
+- Configure docker-compose pour le dev local
+
+**cicd-dev → model: sonnet :**
+- Crée les workflows GitHub Actions
+
+**security-auditor → model: sonnet :**
+- Audite la sécurité de l'infra
 
 **reviewer (si assigné) → model: sonnet :**
 - Revue du code produit
-- Le developer corrige si nécessaire
+- Le dev corrige si nécessaire
 
 ### 6. Stabilize
 
-**stabilizer (toujours en dernier) → model: sonnet 4.6 :**
+**stabilizer (toujours en dernier) → model: sonnet :**
 
 ```bash
 bash scripts/stability-check.sh
@@ -131,36 +132,11 @@ git pull --rebase origin main
 
 Utilise `/compact` pour nettoyer le contexte.
 
-## Gestion des dépendances
-
-### Types de dépendances
-
-| Relation | Syntaxe | Signification | Impact |
-|----------|---------|---------------|--------|
-| Dépendance stricte | `après:US-XX` | A besoin du code de US-XX | Attendre Done |
-| Scope partagé | `partage:US-XX` | Mêmes fichiers modifiés | Pas en parallèle |
-| Extension | `enrichit:US-XX` | Ajoute des fonctionnalités | Quand en cours ou Done |
-
-### Contexte partagé entre US liées
-
-Quand une US dépend d'une autre, l'agent DOIT :
-1. **Lire le résumé de l'US précédente**
-2. **Comprendre ce qui a été construit**
-3. **Construire dessus**
-4. **Vérifier la non-régression**
-
-## Protection contre les merges cassés
-
-1. **Rebase sur main** — la branche doit être à jour
-2. **Stability check** — `bash scripts/stability-check.sh` doit passer
-3. **Pas de conflits** — branche rebasée proprement
-4. **Review validée** — si reviewer assigné
-
 ## Gestion des erreurs
 
-- **Build échoue** → Le stabilizer corrige
-- **Test échoue** → Le tester analyse et corrige
+- **Terraform validate échoue** → Le stabilizer corrige ou renvoie à azure-infra
+- **Terraform plan destruction** → Alerter l'utilisateur
+- **Docker build échoue** → Renvoyer à docker-dev
 - **Régression** → Stop tout, corrige d'abord
 - **US bloquée** → Crée une issue `blocked`, passe à la suivante
 - **Conflit de rebase** → `git rebase --abort`, demander à l'utilisateur
-- **Main cassé** → Priorité absolue, hotfix immédiat

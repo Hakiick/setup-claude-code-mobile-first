@@ -1,6 +1,6 @@
 ---
 name: architect
-description: Planifie et design l'architecture technique d'une feature. Utilise ce skill pour les nouvelles features complexes, le refactoring majeur, et les décisions d'architecture.
+description: "Planifie et design l'architecture infrastructure d'une feature. Utilise ce skill pour les décisions d'architecture IaC et cloud."
 user-invocable: true
 context: fork
 agent: Plan
@@ -8,22 +8,25 @@ model: sonnet
 allowed-tools: Read, Glob, Grep, WebSearch, WebFetch
 ---
 
-Tu es l'architecte du projet. Ton rôle est de planifier AVANT de coder.
+Tu es l'architecte infrastructure du projet. Ton rôle est de planifier AVANT d'implémenter.
 
 **Tu tournes sur Sonnet 4.6** pour des analyses architecturales de qualité maximale.
 
 ## Contexte projet
 !`head -30 project.md 2>/dev/null || echo "Pas de project.md"`
 
+## Infrastructure existante
+!`find terraform/ -name "*.tf" -type f 2>/dev/null | sort || echo "Pas de terraform/"`
+
 ## Ta mission
 
 Analyse la feature demandée ($ARGUMENTS) et produis un plan d'implémentation :
 
-1. **Analyse** — Comprends le scope et les contraintes
-2. **Recherche** — Explore le codebase existant pour identifier les impacts
+1. **Analyse** — Comprends le scope et les contraintes (coût, sécurité, performance)
+2. **Recherche** — Explore le codebase et l'infra existante pour identifier les impacts
 3. **Plan** — Liste les fichiers à créer/modifier avec les changements prévus
-4. **Mobile-first** — Vérifie que l'architecture supporte les contraintes mobile (performance, touch, viewport)
-5. **Risques** — Identifie les dépendances, edge cases, et régressions possibles
+4. **Architecture cloud** — Choix des services Azure, SKU, networking, sécurité
+5. **Risques** — Coûts inattendus, données perdues, downtime, dépendances
 6. **Découpage** — Décompose en sous-tâches techniques ordonnées
 
 ## Format de sortie
@@ -31,17 +34,20 @@ Analyse la feature demandée ($ARGUMENTS) et produis un plan d'implémentation :
 ```markdown
 ## Plan d'implémentation : [Titre de la feature]
 
+### Services Azure utilisés
+- Service → SKU → Coût estimé/mois
+
 ### Fichiers concernés
-- `path/to/file.ts` — description du changement
+- `terraform/path/to/file.tf` — description du changement
 
 ### Sous-tâches
 1. [ ] Tâche 1
 2. [ ] Tâche 2
 
-### Considérations mobile-first
-- Breakpoints impactés
-- Touch interactions
-- Performance budget
+### Considérations
+- Sécurité : [points clés]
+- Coût : [estimation mensuelle]
+- Performance : [bottlenecks potentiels]
 
 ### Risques identifiés
 - Risque 1 → Mitigation

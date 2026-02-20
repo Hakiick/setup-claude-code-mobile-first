@@ -10,18 +10,21 @@
   - `docs(scope): description` — documentation
   - `chore(scope): description` — maintenance, config
   - `perf(scope): description` — amélioration de performance
-  - `a11y(scope): description` — amélioration d'accessibilité
+  - `security(scope): description` — amélioration de sécurité
 - Le **scope** identifie le domaine fonctionnel concerné. Exemples :
-  - `(ui)` — Composants UI
-  - `(layout)` — Layout et navigation
-  - `(responsive)` — Responsive design
-  - `(pwa)` — Progressive Web App
-  - `(perf)` — Performance
-  - `(a11y)` — Accessibilité
-  - `(ci)` — CI/CD
+  - `(infra)` — Infrastructure Terraform
+  - `(docker)` — Dockerfiles et containerisation
+  - `(db)` — Base de données, migrations, schemas
+  - `(cicd)` — CI/CD pipelines, GitHub Actions
+  - `(security)` — Sécurité, RBAC, network policies
+  - `(app-service)` — Azure App Service
+  - `(postgres)` — Azure PostgreSQL
+  - `(networking)` — VNet, NSG, firewall rules
 - Exemples concrets :
-  - `feat(layout): add responsive hamburger menu`
-  - `fix(responsive): correct grid layout on tablet`
-  - `perf(ui): lazy-load images below the fold`
-  - `a11y(nav): add ARIA labels to navigation links`
-- Ne jamais committer de fichiers .env, secrets, ou credentials
+  - `feat(infra): add app-service terraform module`
+  - `feat(docker): create multi-stage Dockerfile for TimeManager`
+  - `feat(db): add PostgreSQL flexible server module`
+  - `feat(cicd): add GitHub Actions deploy workflow`
+  - `security(postgres): enforce SSL and restrict firewall`
+  - `fix(infra): correct App Service health check path`
+- Ne jamais committer de fichiers .env, terraform.tfvars, secrets, ou credentials

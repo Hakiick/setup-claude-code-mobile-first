@@ -1,76 +1,134 @@
-# Setup Claude Code — Mobile-First Template
+# Azure Deployment — Portfolio Apps
 
 ## Project overview
 
-Template starter pour configurer Claude Code avec un workflow multi-agents optimisé pour le développement mobile-first. Ce template fournit une architecture complète d'agents spécialisés, de scripts d'automatisation, et de règles de qualité pour tout projet web mobile-first.
+Déploiement sur Azure (PaaS) de 3 applications portfolio reconstruites. Chaque app utilise Azure App Service + Azure Database for PostgreSQL (si nécessaire). L'infrastructure est définie en Terraform et peut être créée/détruite à la demande.
 
-**Objectif** : Permettre à n'importe quel développeur de démarrer un projet mobile-first avec Claude Code en ayant immédiatement accès à un système d'agents structuré, des scripts de stabilité, et un workflow éprouvé.
-
----
-
-## Stack technique (template par défaut)
-
-> Adaptez cette section à votre projet réel avant de lancer `/init-project`.
-
-- **Framework** : [Votre framework — Next.js, Astro, Remix, Nuxt, etc.]
-- **UI** : [Votre lib UI — React, Vue, Svelte, etc.]
-- **Styling** : [Tailwind CSS, CSS Modules, Styled Components, etc.]
-- **Tests** : [Playwright, Vitest, Jest, Cypress, etc.]
-- **Linter** : [ESLint, Biome, Prettier, etc.]
-- **PWA** : Service Worker + Web App Manifest (optionnel)
+**Objectif** : Déployer chaque app sur Azure avec un `terraform apply`, la rendre accessible publiquement, et pouvoir la détruire avec `terraform destroy` pour contrôler les coûts.
 
 ---
 
-## Architecture type mobile-first
+## Applications à déployer
+
+### ChessGame
+- **Stack** : Next.js 14, React 18, TypeScript, Tailwind CSS, Framer Motion
+- **Runtime** : Node.js 20 LTS (natif App Service)
+- **Database** : Non
+- **Type** : SSR / Static export
+- **Ports** : 3000 (Next.js default)
+- **Health check** : `/`
+
+### FakedIndeed
+- **Stack** : Next.js, TypeScript, Tailwind CSS
+- **Runtime** : Node.js 20 LTS (natif App Service)
+- **Database** : PostgreSQL (utilisateurs, offres d'emploi)
+- **Type** : Full-stack (API routes + SSR)
+- **Ports** : 3000
+- **Health check** : `/api/health`
+
+### TimeManager (T-POO-700-STG_1)
+- **Stack** : Elixir/Phoenix (backend) + Vue 3 (frontend) + PostgreSQL
+- **Runtime** : Docker container (Elixir non supporté nativement sur App Service)
+- **Database** : PostgreSQL (utilisateurs, time entries, teams)
+- **Type** : Full-stack (API REST + SPA)
+- **Ports** : 4000 (Phoenix), 5173 (Vue dev) → 80 en production
+- **Health check** : `/api/health`
+
+---
+
+## Stack technique (déploiement)
+
+- **IaC** : Terraform (~> 4.0 azurerm provider)
+- **Container** : Docker (multi-stage builds)
+- **CI/CD** : GitHub Actions
+- **Cloud** : Azure (App Service + PostgreSQL Flexible Server)
+- **SSL** : Géré par App Service (HTTPS par défaut)
+- **Secrets** : terraform.tfvars (local) + GitHub Secrets (CI/CD)
+
+---
+
+## Architecture cible
 
 ```
-src/
-├── components/
-│   ├── ui/                 # Composants UI réutilisables (Button, Card, Badge, etc.)
-│   ├── layout/             # Layout, Nav, Footer, Sidebar
-│   └── [sections]/         # Sections de votre app
-├── data/                   # Données centralisées (pas de hardcoding dans les composants)
-├── hooks/                  # Custom hooks (useMediaQuery, useViewport, useTouch, etc.)
-├── lib/                    # Utilitaires (cn, animations, etc.)
-├── styles/                 # Variables CSS, design system, breakpoints
-├── pages/ ou app/          # Pages / Routes
-└── public/
-    ├── manifest.json       # Web App Manifest (PWA)
-    └── sw.js               # Service Worker (PWA)
+Azure Resource Group: rg-portfolio-<env>
+├── App Service Plan: asp-portfolio-<env>
+│   ├── App Service: app-chessgame-<env>      (Node.js 20)
+│   ├── App Service: app-fakedindeed-<env>    (Node.js 20)
+│   └── App Service: app-timemanager-<env>    (Docker)
+├── PostgreSQL Flexible Server: psql-portfolio-<env>
+│   ├── Database: fakedindeed
+│   └── Database: timemanager
+└── (optionnel) Container Registry: crportfolio<env>
+```
+
+### Coût estimé (budget)
+- App Service Plan B1 (shared) : ~$13/mois
+- PostgreSQL Burstable B1ms : ~$15/mois
+- **Total : ~$28/mois** (les 3 apps sur un plan partagé)
+- `terraform destroy` → 0 euros
+
+---
+
+## Structure Terraform
+
+```
+terraform/
+├── main.tf                  # Resource group, shared resources
+├── variables.tf             # Variables globales
+├── outputs.tf               # URLs des apps déployées
+├── providers.tf             # Azure provider configuration
+├── terraform.tfvars.example # Template de configuration
+├── modules/
+│   ├── app-service/         # Module App Service (Node.js ou Docker)
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── database/            # Module PostgreSQL Flexible Server
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── networking/          # Module VNet + NSG (optionnel)
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── apps/                    # Configuration par app
+│   ├── chessgame.tf
+│   ├── fakedindeed.tf
+│   └── timemanager.tf
+└── docker/                  # Dockerfiles par app
+    ├── chessgame/
+    │   └── Dockerfile
+    ├── fakedindeed/
+    │   └── Dockerfile
+    └── timemanager/
+        ├── Dockerfile.api   # Elixir/Phoenix
+        └── Dockerfile.front # Vue 3 (build static → nginx)
 ```
 
 ---
 
-## User Stories (template — à remplacer par les vôtres)
+## User Stories
 
 ### Phase 1 — Foundation (high priority)
 
-- [US-01] Setup projet + design system | Initialiser le projet avec la stack choisie, configurer le design system responsive, créer les composants UI de base, configurer les breakpoints mobile-first | haute
-  - Team: mobile-dev, stabilizer
+- [US-01] Terraform base + modules | Créer le squelette Terraform : provider, resource group, modules app-service et database réutilisables, variables, outputs | haute
+  - Team: architect, azure-infra, stabilizer
 
-- [US-02] Layout responsive + navigation mobile | Créer le layout principal responsive, navigation mobile (hamburger menu ou bottom nav), sticky header, smooth scroll | haute | après:US-01
-  - Team: mobile-dev, responsive-tester, stabilizer
+- [US-02] ChessGame deployment | Déployer ChessGame sur Azure App Service (Node.js). Pas de DB. URL accessible publiquement | haute | après:US-01
+  - Team: azure-infra, docker-dev, stabilizer
 
-### Phase 2 — Core features (high priority)
+### Phase 2 — Full-stack apps (high priority)
 
-- [US-03] Pages principales (mobile-first) | Implémenter les pages principales avec design mobile-first, contenu responsive, images optimisées | haute | après:US-02
-  - Team: mobile-dev, stabilizer
+- [US-03] FakedIndeed deployment | Déployer FakedIndeed sur App Service (Node.js) + PostgreSQL. Migrations DB, variables d'environnement, health check | haute | après:US-01
+  - Team: azure-infra, db-architect, docker-dev, stabilizer
 
-### Phase 3 — PWA + Polish (medium priority)
+- [US-04] TimeManager deployment | Déployer TimeManager (Elixir/Phoenix + Vue 3) via Docker. PostgreSQL, multi-container, build multi-stage | haute | après:US-01
+  - Team: azure-infra, db-architect, docker-dev, stabilizer
 
-- [US-04] PWA setup | Configurer le service worker, web app manifest, icônes, splash screen, stratégie de cache offline-first | moyenne | après:US-03
-  - Team: pwa-dev, stabilizer
+### Phase 3 — CI/CD + Polish (medium priority)
 
-- [US-05] Responsive polish + accessibility | Audit responsive complet, ARIA labels, contraste WCAG AA, focus management, touch targets, Lighthouse > 90 mobile | moyenne | après:US-03
-  - Team: responsive-tester, reviewer, stabilizer
+- [US-05] GitHub Actions pipelines | Créer les workflows CI/CD pour les 3 apps : build, test, deploy to Azure on push to main | moyenne | après:US-02,US-03,US-04
+  - Team: cicd-dev, stabilizer
 
----
-
-## SEO & Performance
-
-- Meta tags Open Graph + Twitter Cards
-- Viewport meta tag correctement configuré
-- Responsive images avec srcset
-- Font preload
-- Service Worker pour le cache (PWA)
-- Score Lighthouse cible : > 90 sur les 4 métriques (mobile)
+- [US-06] Security audit + hardening | Audit sécurité : RBAC, network policies, secrets rotation, PostgreSQL SSL, App Service access restrictions | moyenne | après:US-05
+  - Team: security-auditor, reviewer, stabilizer

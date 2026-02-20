@@ -1,4 +1,4 @@
-# Setup Claude Code — Mobile-First Template
+# Setup Claude Code — Azure Deployment Template
 
 Tu es un orchestrateur de projet. Workflow strict et séquentiel.
 
@@ -6,12 +6,12 @@ Contexte du projet : @project.md
 
 ## Règles IMPORTANTES
 
-- **YOU MUST** stabiliser (build + tests + lint) avant de passer à la feature suivante
+- **YOU MUST** stabiliser (terraform validate + plan + lint) avant de passer à la feature suivante
 - **YOU MUST** travailler sur une seule feature à la fois
 - **YOU MUST** nettoyer le contexte (`/compact`) entre chaque feature
 - **YOU MUST** utiliser l'équipe agentique assignée à chaque US
-- **YOU MUST** faire des commits au format `type(scope): description` (ex: `feat(frontend): add responsive nav`)
-- **YOU MUST** nommer les branches au format `type/scope/description-courte` (ex: `feat/frontend/responsive-nav`)
+- **YOU MUST** faire des commits au format `type(scope): description` (ex: `feat(infra): add app service module`)
+- **YOU MUST** nommer les branches au format `type/scope/description-courte` (ex: `feat/infra/app-service-module`)
 - **YOU MUST** utiliser `rebase` — JAMAIS `merge` pour intégrer les changements de `main`
 - **YOU MUST** créer la branche sur GitHub dès le début (`git push -u origin <branch>`)
 - **YOU MUST** lancer `bash scripts/stability-check.sh` AVANT tout push
@@ -31,58 +31,58 @@ Contexte du projet : @project.md
 | `/forge` | **Team Lead** : décompose une US, délègue aux agents spécialisés, feedback loops, livre stable |
 | `/next-feature` | Pipeline linéaire simple (alternative à /forge pour les features simples) |
 | `/reviewer` | Revue de code qualité + sécurité |
-| `/stabilizer` | Vérifie build + tests + lint + type-check |
+| `/stabilizer` | Vérifie terraform validate + plan + lint + format |
 
-### Skills spécialisés mobile-first (générés pour ce template)
-
-| Skill | Usage |
-|-------|-------|
-| `/mobile-dev` | Développeur mobile-first — responsive design, touch interactions, viewport management |
-| `/responsive-tester` | Testeur responsive — breakpoints, touch events, viewports, accessibility |
-| `/pwa-dev` | Spécialiste PWA — service workers, manifest, offline-first, installabilité |
-
-### Skills fallback (génériques, utilisés si pas d'agents générés)
+### Skills spécialisés Azure deployment (générés pour ce template)
 
 | Skill | Usage |
 |-------|-------|
-| `/architect` | Planifie l'architecture d'une feature |
+| `/azure-infra` | Spécialiste Azure Terraform — App Service, PostgreSQL, networking, modules réutilisables |
+| `/docker-dev` | Spécialiste Docker — Dockerfile multi-stage, docker-compose, optimisation images |
+| `/db-architect` | Architecte base de données — schemas, migrations, connection pooling, backup strategies |
+| `/cicd-dev` | Spécialiste CI/CD — GitHub Actions, pipelines de déploiement, environments, secrets |
+| `/security-auditor` | Auditeur sécurité infra — RBAC, network policies, secrets management, compliance |
+
+### Skills fallback (génériques)
+
+| Skill | Usage |
+|-------|-------|
+| `/architect` | Planifie l'architecture infrastructure d'une feature |
 | `/developer` | Implémente une feature |
+| `/devops` | CI/CD, Docker, cloud deployment, Terraform, monitoring |
 | `/tester` | Écrit et lance les tests |
-
-Après `/init-project`, consulte `.claude/team.md` pour voir les agents disponibles.
 
 ## Commandes
 
 ```bash
-# === Dev & Build ===
-npm run dev                           # Dev server
-npm run build                         # Build
-npm run preview                       # Preview build
-npm test                              # Tests
-npm run lint                          # Lint/format check
-npm run type-check                    # Type check
+# === Terraform ===
+terraform init                        # Initialiser les providers
+terraform validate                    # Valider la syntaxe
+terraform fmt -check -recursive       # Vérifier le formatage
+terraform plan -out=tfplan            # Planifier les changements
+terraform apply tfplan                # Appliquer les changements
+terraform destroy                     # Détruire l'infrastructure
+
+# === Docker ===
+docker build -t <app>:<tag> .         # Construire une image
+docker compose up -d                  # Lancer les services localement
+docker compose down                   # Arrêter les services
 
 # === Stabilité & Workflow ===
-bash scripts/stability-check.sh       # Check complet de stabilité
-bash scripts/pre-merge-check.sh       # Vérification pré-merge d'une branche
-bash scripts/check-us-eligibility.sh --list     # US éligibles (dépendances vérifiées)
+bash scripts/stability-check.sh       # Check complet (validate + plan + fmt + lint)
+bash scripts/pre-merge-check.sh       # Vérification pré-merge
+bash scripts/check-us-eligibility.sh --list     # US éligibles
 bash scripts/check-us-eligibility.sh <numero>   # Vérifier une US spécifique
-bash scripts/search-skills.sh --stack           # Chercher des skills communautaires
-bash scripts/install-skill.sh <owner/repo>      # Installer un skill depuis GitHub
+bash scripts/deploy.sh                # Déployer (terraform apply)
+bash scripts/destroy.sh               # Détruire (terraform destroy)
 
 # === Multi-Agent tmux (Forge) ===
-bash scripts/forge-panes.sh --init             # Lancer l'orchestrateur seul (mode autonome — recommandé)
-bash scripts/forge-panes.sh --agents <a1> <a2> # Lancer avec agents prédéfinis (mode manuel)
-bash scripts/forge-panes.sh --list             # Voir les agents actifs
-bash scripts/forge-panes.sh --kill             # Fermer la session forge
-bash scripts/forge-add-agents.sh <a1> <a2>     # Ajouter des agents dynamiquement (appelé par le forge)
-bash scripts/forge-add-agents.sh --remove <a>  # Retirer un agent de la session
-bash scripts/forge-add-agents.sh --cleanup     # Retirer TOUS les agents (fin d'US)
-bash scripts/forge-add-agents.sh --list        # Voir les windows tmux actives
+bash scripts/forge-panes.sh --init             # Lancer l'orchestrateur
+bash scripts/forge-add-agents.sh <a1> <a2>     # Ajouter des agents
+bash scripts/forge-add-agents.sh --cleanup     # Retirer TOUS les agents
 bash scripts/agent-status.sh                   # Dashboard des agents
-bash scripts/dispatch.sh <agent> "prompt"      # Envoyer une tâche à un agent
-bash scripts/collect.sh <agent>                # Lire le résultat d'un agent
-bash scripts/collect.sh <agent> --wait         # Attendre et lire le résultat
+bash scripts/dispatch.sh <agent> "prompt"      # Envoyer une tâche
+bash scripts/collect.sh <agent> --wait         # Lire le résultat
 
 # === GitHub ===
 gh issue list                         # Voir les issues
@@ -90,12 +90,9 @@ gh issue list                         # Voir les issues
 
 ## Workflow
 
-1. `/init-project` — Analyse le projet, brainstorm, génère agents + règles, crée les issues
-2. `/forge` — Pour chaque US (par priorité) :
-   analyse, décompose, délègue aux agents, feedback loops, stabilize, merge main, done, clean context
+1. `/init-project` — Analyse le projet, identifie les besoins de déploiement, génère agents + issues
+2. `/forge` — Pour chaque US : analyse, décompose, délègue, feedback loops, stabilize, merge, done
 3. Répète 2 jusqu'à ce que toutes les US soient done
-
-> `/next-feature` reste disponible comme alternative linéaire pour les features simples.
 
 ---
 
@@ -107,157 +104,85 @@ Le `/forge` est le Team Lead. Il orchestre une équipe d'agents via le système 
 
 ```
 .forge/
-├── tasks/          # Tâches écrites par le forge pour chaque agent
-│   └── <agent>.md  # Description détaillée de la sous-tâche
-├── status/         # Statut de chaque agent (idle | working | done | error | offline)
-│   └── <agent>     # Fichier texte avec le statut
-└── results/        # Résultats produits par chaque agent
-    └── <agent>.md  # Compte-rendu du travail effectué
+├── tasks/          # Tâches par agent
+│   └── <agent>.md
+├── status/         # Statut (idle | working | done | error | offline)
+│   └── <agent>
+└── results/        # Résultats
+    └── <agent>.md
 ```
 
 ### Phase 0 — Sélection de l'US
 
 ```bash
-# Vérifier l'éligibilité (obligatoire — exit 1 = bloquée)
 bash scripts/check-us-eligibility.sh <numero>
-# Lire le body complet
 gh issue view <numero> --json number,title,body,labels --jq '.'
 ```
 
-**YOU MUST NOT** continuer si le script retourne exit 1.
+**YOU MUST NOT** continuer si exit 1.
 
-### Phase 1 — Analyse et décomposition (Team Lead)
+### Phase 1 — Analyse et décomposition
 
-Le forge analyse l'US **lui-même** avant de déléguer :
-
-1. **Comprendre le scope** — critères d'acceptance, dépendances, type de feature
-2. **Choisir l'équipe** — priorité aux agents listés dans le body de l'issue
-3. **Créer les agents tmux** — obligatoire avant l'exécution :
+1. **Comprendre le scope** — critères d'acceptance, dépendances, type d'infrastructure
+2. **Analyser le projet existant** — stack, runtime, DB, ports
+3. **Choisir l'équipe** — agents listés dans l'issue
+4. **Créer les agents tmux** :
 
 ```bash
-# Créer les windows tmux pour chaque agent
-bash scripts/forge-add-agents.sh <agent1> <agent2> <agent3> ...
-# Vérifier que les agents sont créés
+bash scripts/forge-add-agents.sh <agent1> <agent2> ...
 bash scripts/forge-add-agents.sh --list
 ```
 
-4. **Décomposer en sous-tâches** avec TodoWrite, chaque sous-tâche assignée à un agent
+5. **Décomposer en sous-tâches** (TodoWrite)
 
-**Ordre d'exécution des agents :**
-- Planification (`architect`) → en premier
-- Développement (`*-dev`, `mobile-dev`, `pwa-dev`) → ensuite
-- Tests (`*-tester`, `responsive-tester`) → après l'implémentation
-- Revue (`reviewer`) → après les tests
-- Stabilisation (`stabilizer`) → toujours en dernier
+**Ordre d'exécution :**
+- `architect` → en premier (planification)
+- `azure-infra`, `db-architect` → infrastructure
+- `docker-dev` → containerisation
+- `cicd-dev` → pipelines
+- `security-auditor` → audit
+- `reviewer` → revue
+- `stabilizer` → toujours en dernier
 
 ### Phase 2 — Setup Git
 
 ```bash
-git checkout main
-git pull --rebase origin main
+git checkout main && git pull --rebase origin main
 git checkout -b type/scope/description-courte
 git push -u origin type/scope/description-courte
 gh issue edit <numero> --add-label "in-progress" --remove-label "task"
 ```
 
-### Phase 3 — Exécution du pipeline (Mode Team Agents)
+### Phase 3 — Exécution du pipeline
 
-**Détection du mode** (une seule fois en début de Phase 3) :
+Tous les agents Task() utilisent `model: "sonnet"`.
 
-```bash
-SESSION_NAME=$(source scripts/forge-session-name.sh && echo "$SESSION_NAME")
-tmux has-session -t "$SESSION_NAME" 2>/dev/null && echo "TMUX_SESSION=active" || echo "TMUX_SESSION=none"
-FORGE_AGENTS=$(ls .forge/status/ 2>/dev/null | head -20)
-```
-
-- **Si session tmux `$SESSION_NAME` active ET `.forge/status/` contient des agents** → **Mode Team Agents**
-- **Sinon** → **Mode Sub Agents** (fallback via Task() simple)
-
-#### Exécuter une tâche pour un agent (Mode Team Agents)
-
-**Étape 1 — Écrire la tâche et signaler le démarrage** :
-
-```bash
-cat > .forge/tasks/<agent-name>.md << 'TASK'
-# Tâche : [titre court]
-
-## Contexte
-- Projet : [chemin absolu du projet]
-- Branche : [branche courante]
-- US : [numéro et titre de l'issue]
-
-## Ce que tu dois faire
-[Description détaillée de la sous-tâche]
-
-## Fichiers concernés
-[Liste des fichiers à créer/modifier]
-
-## Critères d'acceptance
-[Liste vérifiable]
-
-## Règles
-- Respecte .claude/rules/
-- Commite avec format type(scope): description
-- Ne touche PAS aux fichiers hors scope
-TASK
-
-echo "working" > .forge/status/<agent-name>
-```
-
-**Étape 2 — Lancer le Task() subagent** :
-
-Utilise `Task()` avec le contenu de la tâche comme prompt. Le subagent exécute le travail.
-Le prompt DOIT inclure :
-- Le contenu complet de `.forge/tasks/<agent-name>.md`
-- L'identité : "Tu es l'agent `<agent-name>`"
-- Les règles du projet
-- **Le modèle** : `model: "sonnet"` pour **tous** les agents
-
-**Étape 3 — Écrire le résultat et mettre à jour le statut** :
-
-```bash
-echo "<résultat du Task()>" > .forge/results/<agent-name>.md
-echo "done" > .forge/status/<agent-name>    # ou "error" si échec
-```
-
-#### Tâches parallèles
-
-Si deux agents n'ont pas de dépendance entre eux → lancer les deux `Task()` **en parallèle** (multiple tool calls dans un seul message).
-
-```bash
-echo "working" > .forge/status/agent-1
-echo "working" > .forge/status/agent-2
-```
-
-#### Feedback loops
-
-> Après chaque agent, **évalue le résultat** avant de passer au suivant.
-> Si insatisfaisant → **renvoie** à l'agent approprié.
-
-| Boucle | Max itérations |
-|--------|---------------|
-| developer ↔ tester | 3 |
-| developer ↔ reviewer | 2 |
-| stabilizer retry | 5 |
-
-Au-delà → **stop et demande à l'utilisateur**.
-
-### Évaluation par le Team Lead
+#### Évaluation par le Team Lead
 
 | Après agent | Check | Si échec |
 |------------|-------|----------|
-| `*-dev` | `npx tsc --noEmit` | → Renvoyer au dev avec les erreurs |
-| `*-tester` | `npm test` | → Bug code = renvoyer au dev ; Bug test = renvoyer au tester |
-| `reviewer` | Rapport critiques vs suggestions | → Critiques = renvoyer au dev |
-| `stabilizer` | `bash scripts/stability-check.sh` | → Simple = stabilizer corrige ; Complexe = renvoyer au dev |
+| `azure-infra` | `terraform validate && terraform plan` | → Renvoyer avec erreurs |
+| `docker-dev` | `docker build -t test .` | → Renvoyer avec build log |
+| `db-architect` | Vérifier schemas/migrations | → Renvoyer |
+| `cicd-dev` | Syntaxe workflows | → Renvoyer |
+| `security-auditor` | Critiques vs suggestions | → Critiques = renvoyer au dev |
+| `reviewer` | Critiques vs suggestions | → Critiques = renvoyer au dev |
+| `stabilizer` | `bash scripts/stability-check.sh` | → Simple = corrige ; Complexe = renvoyer |
 
-### Phase 4 — Rebase final + Merge dans main
+#### Feedback loops
+
+| Boucle | Max itérations |
+|--------|---------------|
+| infra ↔ tester | 3 |
+| infra ↔ reviewer | 2 |
+| stabilizer retry | 5 |
+
+### Phase 4 — Rebase final + Merge
 
 ```bash
 git fetch origin main && git rebase origin/main
-bash scripts/stability-check.sh      # Obligatoire après rebase
-git checkout main
-git merge type/scope/description-courte
+bash scripts/stability-check.sh
+git checkout main && git merge type/scope/description-courte
 git push origin main
 git branch -d type/scope/description-courte
 git push origin --delete type/scope/description-courte
@@ -268,24 +193,20 @@ git push origin --delete type/scope/description-courte
 ```bash
 gh issue edit <numero> --add-label "done" --remove-label "in-progress"
 gh issue close <numero>
-# Cleanup agents tmux
 bash scripts/forge-add-agents.sh --cleanup
-# Retour sur main
 git checkout main && git pull --rebase origin main
 ```
 
-Utilise `/compact` pour nettoyer le contexte entre chaque US.
-
-### Gestion des erreurs (décisions Team Lead)
+### Gestion des erreurs
 
 | Situation | Décision |
 |-----------|----------|
-| Compilation échoue après dev | → Renvoyer au dev avec les erreurs |
-| Tests échouent (bug code) | → Dev corrige → Tester re-vérifie |
-| Tests échouent (test mal écrit) | → Tester corrige le test |
-| Review critique | → Dev corrige → Tester re-vérifie → Reviewer re-check |
-| Stabilizer échoue (lint) | → Stabilizer corrige directement |
-| Stabilizer échoue (type error) | → Dev corrige → Stabilizer re-check |
+| terraform validate échoue | → Renvoyer à azure-infra avec les erreurs |
+| terraform plan montre des destructions non voulues | → Alerter l'utilisateur |
+| Docker build échoue | → Renvoyer à docker-dev |
+| Security audit critique | → Dev corrige → Security-auditor re-check |
+| Stabilizer échoue (format) | → Stabilizer corrige directement |
+| Stabilizer échoue (validation error) | → Dev corrige → Stabilizer re-check |
 | Rebase avec conflits | → Résoudre → Stabilizer re-check tout |
 | > 3 itérations dev/test | → Alerter l'utilisateur |
 | > 5 itérations stabilizer | → Alerter l'utilisateur |
@@ -297,12 +218,14 @@ Utilise `/compact` pour nettoyer le contexte entre chaque US.
 |-----------|--------|--------|
 | Orchestration | forge | **Opus 4.6** (obligatoire) |
 | Planification | architect | **Sonnet 4.6** |
-| Développement | mobile-dev, pwa-dev, developer, frontend-dev, backend-dev | **Sonnet 4.6** |
+| Infrastructure | azure-infra, db-architect | **Sonnet 4.6** |
+| Containerisation | docker-dev | **Sonnet 4.6** |
+| CI/CD | cicd-dev | **Sonnet 4.6** |
+| Sécurité | security-auditor | **Sonnet 4.6** |
 | Revue | reviewer | **Sonnet 4.6** |
-| Test | tester, responsive-tester | **Sonnet 4.6** |
 | Validation | stabilizer | **Sonnet 4.6** |
 
-**IMPORTANT : Tous les agents Task() DOIVENT utiliser `model: "sonnet"`. L'orchestrateur (forge) reste sur Opus 4.6.**
+**IMPORTANT : Tous les agents Task() DOIVENT utiliser `model: "sonnet"`. Le forge reste sur Opus 4.6.**
 
 ---
 
@@ -319,52 +242,45 @@ main ─────────────────────────
 - **Merge** : `git checkout main && git merge <branch>`
 - **Après merge** : vérifier que main est stable
 
-## Mobile-First Principles
+## Azure Deployment Principles
 
-- **Design mobile d'abord** — Commencer par les écrans < 640px, puis élargir
-- **Touch-first interactions** — Zones de tap minimum 44x44px, pas de hover-only
-- **Performance budget** — LCP < 2.5s, FID < 100ms, CLS < 0.1
-- **Viewport-aware** — Gérer le viewport mobile (100dvh, safe-area-inset)
-- **Progressive enhancement** — Fonctionnalités de base sur mobile, enrichies sur desktop
-- **Offline-capable** — Service worker pour le contenu critique
-- **Responsive images** — srcset, sizes, formats modernes (WebP/AVIF)
+- **Infrastructure as Code** — Tout en Terraform, rien en manuel
+- **Ephemeral infrastructure** — `terraform apply` pour déployer, `terraform destroy` pour couper
+- **Modules réutilisables** — Un module par ressource (app-service, database, networking)
+- **Secrets management** — Variables sensibles dans `terraform.tfvars` (gitignored), jamais en dur
+- **Cost-conscious** — SKU les plus économiques (B1, Burstable B1ms)
+- **PaaS-first** — App Service plutôt que des VMs
+- **Docker for non-native runtimes** — Docker container pour Elixir, Go, Rust
+- **Health checks** — Endpoint `/api/health` sur chaque app
+- **SSL/TLS par défaut** — HTTPS only, TLS 1.2 minimum
 
-## Code rules
-
-- TypeScript strict partout
-- Mobile-first responsive design
-- Pas de `console.log` en production
-- Pas de code commenté — supprimer ou créer une issue
-- Fonctions courtes (< 50 lignes)
-- Nommage explicite, pas d'abréviations cryptiques
-- Try/catch sur les appels API externes
-- Valider les inputs utilisateur
-- Pas de `any` en TypeScript — utilise des types stricts
-
-## Responsive breakpoints
+## Azure Naming Conventions
 
 ```
---breakpoint-sm:  640px    /* Small mobile → large mobile */
---breakpoint-md:  768px    /* Mobile → Tablet */
---breakpoint-lg:  1024px   /* Tablet → Desktop */
---breakpoint-xl:  1280px   /* Desktop → Large desktop */
---breakpoint-2xl: 1536px   /* Large desktop → Ultra-wide */
+Resource Group:     rg-<project>-<env>
+App Service Plan:   asp-<project>-<env>
+App Service:        app-<project>-<env>
+PostgreSQL Server:  psql-<project>-<env>
+Virtual Network:    vnet-<project>-<env>
+Container Registry: cr<project><env>
 ```
 
-## Performance targets
+## Code rules (IaC)
 
-- Lighthouse > 90 sur les 4 métriques (mobile)
-- Core Web Vitals : LCP < 2.5s, FID < 100ms, CLS < 0.1
-- Bundle size < 200KB (gzipped, initial load)
-- Images lazy-loaded avec placeholder blur
-- Fonts preloaded, subset si possible
-- Animations GPU-accelerated (transform, opacity)
-- Pas de layout shift
+- HCL bien formaté (`terraform fmt`)
+- Variables typées avec descriptions et validations
+- Pas de valeurs en dur — tout en variables
+- Outputs documentés pour chaque module
+- Pas de `terraform apply` sans `terraform plan` d'abord
+- Pas de credentials dans le code
+- Modules versionnés et testables indépendamment
+- Naming conventions Azure cohérentes
 
 ## Stability
 
-- Après chaque modification : le serveur doit démarrer sans erreur
-- Le build doit passer
-- Les tests doivent passer
-- Ne jamais désactiver un test pour le faire passer
+- `terraform validate` doit passer après chaque modification
+- `terraform plan` ne doit pas montrer de destructions non voulues
+- `terraform fmt -check` doit passer
+- Les Dockerfiles doivent builder sans erreur
+- Ne jamais désactiver un check pour le faire passer
 - Chaque US doit être stable AVANT de passer à la suivante
